@@ -1,4 +1,6 @@
-package chess;
+package chess.movecalculator;
+
+import chess.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -20,6 +22,7 @@ public interface PieceMovesCalculator {
             ChessPosition newPos = new ChessPosition(row, col);
             ChessPiece p = board.getPiece(newPos);
             ChessMove m = new ChessMove(pos, newPos, null);
+
             if (p == null) { //empty square
                 moves.add(m);
             } else if (p.getTeamColor() == color) { //blocked by my piece
