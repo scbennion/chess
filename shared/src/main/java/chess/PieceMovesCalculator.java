@@ -9,7 +9,7 @@ public interface PieceMovesCalculator {
     /*
     Check the valid moves for a piece in a given direction
      */
-    static ArrayList<ChessMove> computeDir(int rowDir, int colDir, ChessBoard board, ChessPosition pos) {
+    static ArrayList<ChessMove> computeDir(int rowDir, int colDir, boolean longRange, ChessBoard board, ChessPosition pos) {
         int size = board.getSize();
         ArrayList<ChessMove> moves = new ArrayList<>();
         ChessGame.TeamColor color = board.getPiece(pos).getTeamColor();
@@ -27,6 +27,9 @@ public interface PieceMovesCalculator {
                 break;
             } else { //blocked by enemy piece
                 moves.add(m);
+                break;
+            }
+            if (!longRange) {
                 break;
             }
         }
