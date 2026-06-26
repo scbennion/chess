@@ -12,7 +12,7 @@ import java.util.Objects;
 public class ChessPiece {
     ChessGame.TeamColor color;
     ChessPiece.PieceType type;
-    
+
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.color = pieceColor;
         this.type = type;
@@ -57,7 +57,8 @@ public class ChessPiece {
             case ROOK -> new RookMovesCalculator().pieceMoves(board, myPosition);
             case KING -> new KingMovesCalculator().pieceMoves(board, myPosition);
             case KNIGHT -> new KnightMovesCalculator().pieceMoves(board, myPosition);
-            case PAWN ->  null;
+            case PAWN ->  new PawnMovesCalculator(board.getPiece(myPosition).getTeamColor(),
+                    myPosition, board.getSize()).pieceMoves(board, myPosition);
             case QUEEN -> new QueenMovesCalculator().pieceMoves(board, myPosition);
         };
     }

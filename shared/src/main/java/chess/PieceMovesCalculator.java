@@ -5,7 +5,6 @@ import java.util.Collection;
 
 public interface PieceMovesCalculator {
     Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition);
-
     /*
     Check the valid moves for a piece in a given direction
      */
