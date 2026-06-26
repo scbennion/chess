@@ -44,6 +44,27 @@ public class ChessBoard {
      */
     public void resetBoard() {
         squares = new ChessPiece[size][size];
+        makeBackRow(1, ChessGame.TeamColor.WHITE);
+        makeBackRow(8, ChessGame.TeamColor.BLACK);
+        makePawnRow(2, ChessGame.TeamColor.WHITE);
+        makePawnRow(7, ChessGame.TeamColor.BLACK);
+    }
+
+    private void makeBackRow(int row, ChessGame.TeamColor color) {
+        squares[row-1][0] = new ChessPiece(color, ChessPiece.PieceType.ROOK);
+        squares[row-1][1] = new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
+        squares[row-1][2] = new ChessPiece(color, ChessPiece.PieceType.BISHOP);
+        squares[row-1][3] = new ChessPiece(color, ChessPiece.PieceType.QUEEN);
+        squares[row-1][4] = new ChessPiece(color, ChessPiece.PieceType.KING);
+        squares[row-1][5] = new ChessPiece(color, ChessPiece.PieceType.BISHOP);
+        squares[row-1][6] = new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
+        squares[row-1][7] = new ChessPiece(color, ChessPiece.PieceType.ROOK);
+    }
+
+    private void makePawnRow(int row, ChessGame.TeamColor color) {
+        for (int c = 0; c < size; c++) {
+            squares[row - 1][c] = new ChessPiece(color, ChessPiece.PieceType.PAWN);
+        }
     }
 
     public int getSize() {
@@ -56,11 +77,21 @@ public class ChessBoard {
             return false;
         }
         ChessBoard that = (ChessBoard) o;
-        return size == that.size && Objects.deepEquals(squares, that.squares);
+        return (size == that.size && Objects.deepEquals(squares, that.squares));
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(Arrays.deepHashCode(squares), size);
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        for (ChessPiece[] boardRow : squares) {
+            sb.append("\n").append((Arrays.deepToString(boardRow)));
+        }
+        return sb.toString();
+
     }
 }
