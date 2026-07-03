@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Objects;
 
 /**
@@ -12,19 +13,25 @@ import java.util.Objects;
 public class ChessBoard {
     ChessPiece[][] squares;
     int size = 8;
+    private HashMap<ChessGame.TeamColor, ChessPosition> kingPos;
 
     public ChessBoard() {
         squares = new ChessPiece[size][size];
+        kingPos = new HashMap<>();
     }
 
     /**
      * Adds a chess piece to the chessboard
-     *
+     * If a chess piece is a king, adds it to the kingPos hashmap
      * @param position where to add the piece to
      * @param piece    the piece to add
      */
-    public void addPiece(ChessPosition position, ChessPiece piece) {
+    public void addPiece(ChessPosition position, ChessPiece piece)  {
         squares[position.getRow()-1][position.getColumn()-1] = piece;
+        ChessGame.TeamColor color = piece.getTeamColor();
+        if (piece.getPieceType() == ChessPiece.PieceType.KING) {
+            kingPos.put(color, position);
+        }
     }
 
     /**
@@ -36,6 +43,10 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
         return squares[position.getRow()-1][position.getColumn()-1];
+    }
+
+    public ChessPosition getKingPos(ChessGame.TeamColor color) {
+        return kingPos.get(color);
     }
 
     /**
@@ -50,6 +61,9 @@ public class ChessBoard {
         makePawnRow(7, ChessGame.TeamColor.BLACK);
     }
 
+    /**
+    Makes the back row and sets the King Position
+     */
     private void makeBackRow(int row, ChessGame.TeamColor color) {
         squares[row-1][0] = new ChessPiece(color, ChessPiece.PieceType.ROOK);
         squares[row-1][1] = new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
@@ -59,6 +73,8 @@ public class ChessBoard {
         squares[row-1][5] = new ChessPiece(color, ChessPiece.PieceType.BISHOP);
         squares[row-1][6] = new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
         squares[row-1][7] = new ChessPiece(color, ChessPiece.PieceType.ROOK);
+
+        kingPos.put(color, new ChessPosition(row, 5));
     }
 
     private void makePawnRow(int row, ChessGame.TeamColor color) {
