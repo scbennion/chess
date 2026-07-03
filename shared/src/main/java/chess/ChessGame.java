@@ -1,6 +1,8 @@
 package chess;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
 
 /**
@@ -12,11 +14,13 @@ import java.util.Objects;
 public class ChessGame {
     ChessBoard board;
     TeamColor turn;
+    boolean inCheck;
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         turn = TeamColor.WHITE;
+        inCheck = false;
     }
 
     /**
@@ -51,7 +55,12 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        ChessPiece p =  board.getPiece(startPosition);
+        ArrayList<ChessMove> validMoves = new ArrayList<>();
+        if (p != null && p.getTeamColor() == turn) {
+            validMoves.addAll(p.pieceMoves(board, startPosition));
+        }
+        return validMoves;
     }
 
     /**
@@ -71,7 +80,22 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
-        throw new RuntimeException("Not implemented");
+        ChessPosition kingPos = board.getKingPos(teamColor);
+        Map<ChessPosition, ChessPiece> pieces = board.getSidePieces(oppositeColor(teamColor));
+        for (ChessPosition pos : pieces.keySet()) {
+            for (ChessMove m : pieces.get(pos).pieceMoves(board, pos)) {
+                if (m.getEndPosition().equals(kingPos)) {
+                    return true;
+                }
+            }
+        } return false;
+    }
+
+    private TeamColor oppositeColor(TeamColor c) {
+        return switch (c) {
+            case WHITE -> TeamColor.BLACK;
+            case BLACK -> TeamColor.WHITE;
+        };
     }
 
     /**
