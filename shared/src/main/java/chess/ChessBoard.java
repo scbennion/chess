@@ -14,24 +14,34 @@ public class ChessBoard {
     ChessPiece[][] squares;
     int size = 8;
     private HashMap<ChessGame.TeamColor, ChessPosition> kingPos;
+    private HashMap<ChessPosition, ChessPiece> whitePieces;
+    private HashMap<ChessPosition, ChessPiece> blackPieces;
 
     public ChessBoard() {
         squares = new ChessPiece[size][size];
         kingPos = new HashMap<>();
+        whitePieces = new HashMap<>();
+        blackPieces = new HashMap<>();
     }
 
     /**
      * Adds a chess piece to the chessboard
-     * If a chess piece is a king, adds it to the kingPos hashmap
      * @param position where to add the piece to
      * @param piece    the piece to add
      */
     public void addPiece(ChessPosition position, ChessPiece piece)  {
         squares[position.getRow()-1][position.getColumn()-1] = piece;
+
         ChessGame.TeamColor color = piece.getTeamColor();
+
         if (piece.getPieceType() == ChessPiece.PieceType.KING) {
             kingPos.put(color, position);
         }
+        switch (color) {
+            case WHITE -> whitePieces.put(position, piece);
+            case BLACK -> blackPieces.put(position, piece);
+        }
+
     }
 
     /**
@@ -43,6 +53,13 @@ public class ChessBoard {
      */
     public ChessPiece getPiece(ChessPosition position) {
         return squares[position.getRow()-1][position.getColumn()-1];
+    }
+
+    public HashMap<ChessPosition, ChessPiece> getSidePieces(ChessGame.TeamColor color) {
+        return switch(color) {
+            case WHITE -> whitePieces;
+            case BLACK -> blackPieces;
+        };
     }
 
     public ChessPosition getKingPos(ChessGame.TeamColor color) {
@@ -62,24 +79,29 @@ public class ChessBoard {
     }
 
     /**
-    Makes the back row and sets the King Position
+    Makes the back row
      */
     private void makeBackRow(int row, ChessGame.TeamColor color) {
-        squares[row-1][0] = new ChessPiece(color, ChessPiece.PieceType.ROOK);
-        squares[row-1][1] = new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
-        squares[row-1][2] = new ChessPiece(color, ChessPiece.PieceType.BISHOP);
-        squares[row-1][3] = new ChessPiece(color, ChessPiece.PieceType.QUEEN);
-        squares[row-1][4] = new ChessPiece(color, ChessPiece.PieceType.KING);
-        squares[row-1][5] = new ChessPiece(color, ChessPiece.PieceType.BISHOP);
-        squares[row-1][6] = new ChessPiece(color, ChessPiece.PieceType.KNIGHT);
-        squares[row-1][7] = new ChessPiece(color, ChessPiece.PieceType.ROOK);
 
-        kingPos.put(color, new ChessPosition(row, 5));
+        addPiece(new ChessPosition(row, 1), new ChessPiece(color, ChessPiece.PieceType.ROOK));
+        addPiece(new ChessPosition(row, 2), new ChessPiece(color, ChessPiece.PieceType.KNIGHT));
+        addPiece(new ChessPosition(row, 3), new ChessPiece(color, ChessPiece.PieceType.BISHOP));
+        addPiece(new ChessPosition(row, 4), new ChessPiece(color, ChessPiece.PieceType.QUEEN));
+        addPiece(new ChessPosition(row, 5), new ChessPiece(color, ChessPiece.PieceType.KING));
+        addPiece(new ChessPosition(row, 6), new ChessPiece(color, ChessPiece.PieceType.BISHOP));
+        addPiece(new ChessPosition(row, 7), new ChessPiece(color, ChessPiece.PieceType.KNIGHT));
+        addPiece(new ChessPosition(row, 8), new ChessPiece(color, ChessPiece.PieceType.ROOK));
+
+        setKingPos(color, new ChessPosition(row, 5));
+    }
+
+    private void setKingPos (ChessGame.TeamColor color, ChessPosition pos) {
+        kingPos.put(color, pos);
     }
 
     private void makePawnRow(int row, ChessGame.TeamColor color) {
-        for (int c = 0; c < size; c++) {
-            squares[row - 1][c] = new ChessPiece(color, ChessPiece.PieceType.PAWN);
+        for (int c = 1; c <= size; c++) {
+            addPiece(new ChessPosition(row, c), new ChessPiece(color, ChessPiece.PieceType.PAWN));
         }
     }
 
