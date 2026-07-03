@@ -81,6 +81,20 @@ public class ChessPiece {
 
     @Override
     public String toString() {
-        return String.format("%s %s", color, type);
+        StringBuilder toRet = new StringBuilder();
+        switch (color) {
+            case WHITE -> toRet.append("WH ");
+            case BLACK -> toRet.append("BL ");
+        }
+        toRet.append(switch (type) {
+            case KING -> "KI";
+            case QUEEN -> "QU";
+            case BISHOP -> "BI";
+            case KNIGHT -> "KN";
+            case ROOK -> "RO";
+            case PAWN -> "PA";
+        });
+
+        return toRet.toString();
     }
 }

@@ -127,7 +127,15 @@ public class ChessBoard {
     public String toString() {
         StringBuilder sb = new StringBuilder();
         for (ChessPiece[] boardRow : squares) {
-            sb.append("\n").append((Arrays.deepToString(boardRow)));
+            for (ChessPiece p : boardRow) {
+                if (p != null) {
+                    sb.append(p).append("\t");
+                } else {
+                    sb.append("_____").append("\t");
+                }
+            }
+            sb.append("\n");
+            //sb.append("\n").append((Arrays.deepToString(boardRow)));
         }
         return sb.toString();
 
