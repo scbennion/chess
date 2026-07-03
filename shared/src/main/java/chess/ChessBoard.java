@@ -12,16 +12,64 @@ import java.util.Objects;
  */
 public class ChessBoard {
     ChessPiece[][] squares;
-    int size = 8;
+    final int size = 8;
     private HashMap<ChessGame.TeamColor, ChessPosition> kingPos;
     private HashMap<ChessPosition, ChessPiece> whitePieces;
     private HashMap<ChessPosition, ChessPiece> blackPieces;
 
     public ChessBoard() {
+        setFields();
+    }
+
+    public ChessBoard(ChessBoard copyBoard) {
+        setFields();
+        //The positions and pieces don't need to be copied as all fields are final
+        //By copying the maps and board, you can then move pieces around
+        // in your new board with no unintended consequences
+        for (ChessPosition p: copyBoard.whitePieces.keySet()) {
+            whitePieces.put(p, copyBoard.whitePieces.get(p));
+        }
+        for (ChessPosition p: copyBoard.blackPieces.keySet()) {
+            blackPieces.put(p, copyBoard.blackPieces.get(p));
+        }
+        for  (ChessGame.TeamColor c: copyBoard.kingPos.keySet()) {
+            kingPos.put(c, copyBoard.kingPos.get(c));
+        }
+        for (int row = 0; row < size; row++) {
+            for (int col = 0; col < size; col++) {
+                squares[row][col] = copyBoard.squares[row][col];
+            }
+        }
+    }
+
+    private void setFields() {
         squares = new ChessPiece[size][size];
         kingPos = new HashMap<>();
         whitePieces = new HashMap<>();
         blackPieces = new HashMap<>();
+    }
+
+    public void movePiece(ChessMove m) {
+        ChessPosition startPos = m.getStartPosition();
+        ChessPosition endPos = m.getEndPosition();
+        ChessPiece p = squares[startPos.getRow()][startPos.getColumn()];
+        ChessGame.TeamColor c = p.getTeamColor();
+
+        if (p.getPieceType() == ChessPiece.PieceType.KING) {
+            kingPos.put(c, endPos);
+        }
+        switch (c) {
+            case WHITE -> {
+                whitePieces.remove(startPos);
+                whitePieces.put(endPos, p);
+            } case BLACK -> {
+                blackPieces.remove(startPos);
+                blackPieces.put(endPos, p);
+            }
+        }
+        squares[startPos.getRow()-1][startPos.getColumn()-1] = null;
+        squares[endPos.getRow()-1][endPos.getColumn()-1] = p;
+
     }
 
     /**
