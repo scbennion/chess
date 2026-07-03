@@ -57,8 +57,15 @@ public class ChessGame {
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece p =  board.getPiece(startPosition);
         ArrayList<ChessMove> validMoves = new ArrayList<>();
-        if (p != null && p.getTeamColor() == turn) {
-            validMoves.addAll(p.pieceMoves(board, startPosition));
+        if (p != null) {
+            TeamColor c = p.getTeamColor();
+            for (ChessMove m : p.pieceMoves(board, startPosition)) {
+                ChessBoard testCheckBoard = new ChessBoard(board);
+                testCheckBoard.movePiece(m, p);
+                if (!boardInCheck(c, testCheckBoard)) {
+                    validMoves.add(m);
+                }
+            }
         }
         return validMoves;
     }
@@ -80,6 +87,10 @@ public class ChessGame {
      * @return True if the specified team is in check
      */
     public boolean isInCheck(TeamColor teamColor) {
+        return boardInCheck(teamColor, this.board);
+    }
+
+    private boolean boardInCheck(TeamColor teamColor, ChessBoard board) {
         ChessPosition kingPos = board.getKingPos(teamColor);
         Map<ChessPosition, ChessPiece> pieces = board.getSidePieces(oppositeColor(teamColor));
         for (ChessPosition pos : pieces.keySet()) {

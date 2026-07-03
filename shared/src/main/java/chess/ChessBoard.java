@@ -49,10 +49,9 @@ public class ChessBoard {
         blackPieces = new HashMap<>();
     }
 
-    public void movePiece(ChessMove m) {
+    public void movePiece(ChessMove m, ChessPiece p) {
         ChessPosition startPos = m.getStartPosition();
         ChessPosition endPos = m.getEndPosition();
-        ChessPiece p = squares[startPos.getRow()][startPos.getColumn()];
         ChessGame.TeamColor c = p.getTeamColor();
 
         if (p.getPieceType() == ChessPiece.PieceType.KING) {
