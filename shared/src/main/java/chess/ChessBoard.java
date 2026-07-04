@@ -54,18 +54,35 @@ public class ChessBoard {
         ChessPosition endPos = m.getEndPosition();
         ChessGame.TeamColor c = p.getTeamColor();
 
+        //check for updated king position
         if (p.getPieceType() == ChessPiece.PieceType.KING) {
             kingPos.put(c, endPos);
         }
+
+        //account for promotion
+        if (m.getPromotionPiece() != null) {
+            p = new ChessPiece(c, m.getPromotionPiece());
+        }
+
+        //update piece maps for my side and opposing side for capture
         switch (c) {
             case WHITE -> {
                 whitePieces.remove(startPos);
                 whitePieces.put(endPos, p);
+                if (squares[endPos.getRow()-1][endPos.getColumn()-1] != null) {
+                    blackPieces.remove(endPos);
+                }
             } case BLACK -> {
                 blackPieces.remove(startPos);
                 blackPieces.put(endPos, p);
+                if (squares[endPos.getRow()-1][endPos.getColumn()-1] != null) {
+                    whitePieces.remove(endPos);
+                }
             }
         }
+
+
+        //move piece
         squares[startPos.getRow()-1][startPos.getColumn()-1] = null;
         squares[endPos.getRow()-1][endPos.getColumn()-1] = p;
 
@@ -79,14 +96,16 @@ public class ChessBoard {
     public void addPiece(ChessPosition position, ChessPiece piece)  {
         squares[position.getRow()-1][position.getColumn()-1] = piece;
 
-        ChessGame.TeamColor color = piece.getTeamColor();
+        if (piece != null) {
+            ChessGame.TeamColor color = piece.getTeamColor();
 
-        if (piece.getPieceType() == ChessPiece.PieceType.KING) {
-            kingPos.put(color, position);
-        }
-        switch (color) {
-            case WHITE -> whitePieces.put(position, piece);
-            case BLACK -> blackPieces.put(position, piece);
+            if (piece.getPieceType() == ChessPiece.PieceType.KING) {
+                kingPos.put(color, position);
+            }
+            switch (color) {
+                case WHITE -> whitePieces.put(position, piece);
+                case BLACK -> blackPieces.put(position, piece);
+            }
         }
 
     }
