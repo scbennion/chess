@@ -14,12 +14,13 @@ import java.util.Objects;
 public class ChessGame {
     ChessBoard board;
     TeamColor turn;
-
+    ChessPosition lastMovedPosition;
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         turn = TeamColor.WHITE;
+        lastMovedPosition = null;
     }
 
     /**
@@ -55,37 +56,20 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
+        System.out.println(board);
         ChessPiece p =  board.getPiece(startPosition);
         ArrayList<ChessMove> validMoves = new ArrayList<>();
         if (p != null) {
             TeamColor c = p.getTeamColor();
             for (ChessMove m : p.pieceMoves(board, startPosition)) {
                 ChessBoard testCheckBoard = new ChessBoard(board);
-                testCheckBoard.movePiece(m, p);
+                testCheckBoard.movePiece(m);
                 if (!boardInCheck(c, testCheckBoard)) {
                     validMoves.add(m);
                 }
             }
-            validMoves.addAll(tryCastling(startPosition, p));
         }
         return validMoves;
-    }
-
-    /**
-     * Checks for castling for a king
-     */
-    private Collection<ChessMove> tryCastling(ChessPosition startPos, ChessPiece p) {
-        ArrayList<ChessMove> moves = new ArrayList<>();
-        if (p.getPieceType() == ChessPiece.PieceType.KING && p.getMoveCount() == 0) {
-            //left castle
-            ChessPiece left_rook = board.getPiece(new ChessPosition(startPos.getRow(), 1));
-            ChessPiece right_rook = board.getPiece(new ChessPosition(startPos.getRow(), 8));
-            if (left_rook != null && left_rook.getPieceType() == ChessPiece.PieceType.ROOK
-                && left_rook.getMoveCount() == 0) {
-              //moves.add
-            }
-        }
-        return moves;
     }
 
     /**
@@ -100,14 +84,58 @@ public class ChessGame {
         if (piece == null || piece.getTeamColor() != turn)
             throw new InvalidMoveException();
 
+        if (move.getSpecialMove() == null) {
+            move = trySetSpecialMoveField(move);
+        }
+
         Collection<ChessMove> moves = validMoves(startPos);
         if (moves.contains(move)) {
-            board.movePiece(move, piece);
+            board.movePiece(move);
+            tryMoveSecondPiece(move);
             turn = oppositeColor(turn);
+            lastMovedPosition = move.getEndPosition();
         } else {
             throw new InvalidMoveException();
         }
     }
+
+    /**
+     * Some of the test cases in Castling Tests don't set the special move
+     * flag as intended, so it has to be to set by deduction
+     */
+    private ChessMove trySetSpecialMoveField(ChessMove move) {
+        if (board.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+            int result = move.getStartPosition().getColumn() - move.getEndPosition().getColumn();
+            if (result == 2) {
+                move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.LEFT_CASTLE);
+            }
+            else if (result == -2) {
+                move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.RIGHT_CASTLE);
+            }
+        }
+        return move;
+    }
+
+
+    /**
+     * Moves the second piece for special moves like castling and en passant
+     */
+    private void tryMoveSecondPiece(ChessMove m) {
+        if (m.getSpecialMove() != null) {
+            switch (m.getSpecialMove()) {
+                case LEFT_CASTLE -> {
+                    int row = m.getStartPosition().getRow();
+                    board.movePiece(new ChessMove(new ChessPosition(row, 1), new ChessPosition(row, 4), null));
+                } case RIGHT_CASTLE -> {
+                    int row = m.getStartPosition().getRow();
+                    board.movePiece(new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6), null));
+                } case LEFT_EN_PASSANT -> {
+                } case RIGHT_EN_PASSANT -> {
+                }
+            }
+        }
+    }
+
 
     /**
      * Determines if the given team is in check

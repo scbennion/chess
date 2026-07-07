@@ -12,25 +12,34 @@ public class ChessMove {
     private final ChessPosition startPosition;
     private final ChessPosition endPosition;
     private final ChessPiece.PieceType promotionPiece;
-    private final boolean specialMove;
+    private final SpecialMove specialMove;
+
+    public enum SpecialMove {
+        LEFT_CASTLE,
+        RIGHT_CASTLE,
+        LEFT_EN_PASSANT,
+        RIGHT_EN_PASSANT
+    }
+
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
                      ChessPiece.PieceType promotionPiece) {
         this.startPosition = startPosition;
         this.endPosition = endPosition;
         this.promotionPiece = promotionPiece;
-        this.specialMove = false;
+        this.specialMove = null;
     }
 
     public ChessMove(ChessPosition startPosition, ChessPosition endPosition,
-                     ChessPiece.PieceType promotionPiece, boolean specialMove) {
+                     ChessPiece.PieceType promotionPiece, SpecialMove specialMove) {
         this.startPosition = startPosition;
         this.endPosition = endPosition;
         this.promotionPiece = promotionPiece;
         this.specialMove = specialMove;
     }
 
-    public boolean isSpecialMove() {
+
+    public SpecialMove getSpecialMove() {
         return specialMove;
     }
 
@@ -63,7 +72,7 @@ public class ChessMove {
         if (promotionPiece == null) {
             return String.format("[%s, %s]", startPosition, endPosition);
         } else {
-            return String.format("[%s, %s, %s]", startPosition, endPosition, promotionPiece);
+            return String.format("[%s, %s, %s, %s]", startPosition, endPosition, promotionPiece, specialMove);
         }
     }
 
@@ -76,10 +85,11 @@ public class ChessMove {
         return Objects.equals(startPosition, chessMove.startPosition)
                 && Objects.equals(endPosition, chessMove.endPosition)
                 && promotionPiece == chessMove.promotionPiece;
+                //&& specialMove == chessMove.specialMove;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(startPosition, endPosition, promotionPiece);
+        return Objects.hash(startPosition, endPosition, promotionPiece); //specialMove;
     }
 }

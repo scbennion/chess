@@ -9,6 +9,7 @@ import java.util.Objects;
  * <p>
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
+ * Note: This class knows nothing about turns, only about board info
  */
 public class ChessBoard {
     ChessPiece[][] squares;
@@ -38,8 +39,13 @@ public class ChessBoard {
         for (int row = 0; row < size; row++) {
             for (int col = 0; col < size; col++) {
                 squares[row][col] = copyBoard.squares[row][col];
+                if (squares[row][col] != null) {
+                    squares[row][col] = new ChessPiece(squares[row][col].getTeamColor(),
+                            squares[row][col].getPieceType(), squares[row][col].getMoveCount());
+                }
             }
         }
+
     }
 
     private void setFields() {
@@ -77,9 +83,10 @@ public class ChessBoard {
 
     }
 
-    public void movePiece(ChessMove m, ChessPiece p) {
+    public void movePiece(ChessMove m) {
         ChessPosition startPos = m.getStartPosition();
         ChessPosition endPos = m.getEndPosition();
+        ChessPiece p = squares[m.getStartPosition().getRow()-1][m.getStartPosition().getColumn()-1];
         ChessGame.TeamColor c = p.getTeamColor();
 
         //account for promotion
