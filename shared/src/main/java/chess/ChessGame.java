@@ -14,13 +14,12 @@ import java.util.Objects;
 public class ChessGame {
     ChessBoard board;
     TeamColor turn;
-    boolean inCheck;
+
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         turn = TeamColor.WHITE;
-        inCheck = false;
     }
 
     /**
@@ -47,6 +46,7 @@ public class ChessGame {
         BLACK
     }
 
+
     /**
      * Gets all valid moves for a piece at the given location
      *
@@ -66,8 +66,26 @@ public class ChessGame {
                     validMoves.add(m);
                 }
             }
+            validMoves.addAll(tryCastling(startPosition, p));
         }
         return validMoves;
+    }
+
+    /**
+     * Checks for castling for a king
+     */
+    private Collection<ChessMove> tryCastling(ChessPosition startPos, ChessPiece p) {
+        ArrayList<ChessMove> moves = new ArrayList<>();
+        if (p.getPieceType() == ChessPiece.PieceType.KING && p.getMoveCount() == 0) {
+            //left castle
+            ChessPiece left_rook = board.getPiece(new ChessPosition(startPos.getRow(), 1));
+            ChessPiece right_rook = board.getPiece(new ChessPosition(startPos.getRow(), 8));
+            if (left_rook != null && left_rook.getPieceType() == ChessPiece.PieceType.ROOK
+                && left_rook.getMoveCount() == 0) {
+              //moves.add
+            }
+        }
+        return moves;
     }
 
     /**
@@ -78,13 +96,13 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPos = move.getStartPosition();
-
-        if (board.getPiece(startPos) == null || board.getPiece(startPos).getTeamColor() != turn)
+        ChessPiece piece = board.getPiece(startPos);
+        if (piece == null || piece.getTeamColor() != turn)
             throw new InvalidMoveException();
 
         Collection<ChessMove> moves = validMoves(startPos);
         if (moves.contains(move)) {
-            board.movePiece(move, board.getPiece(startPos));
+            board.movePiece(move, piece);
             turn = oppositeColor(turn);
         } else {
             throw new InvalidMoveException();

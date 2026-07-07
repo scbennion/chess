@@ -12,12 +12,20 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessPiece {
-    final ChessGame.TeamColor color;
-    final ChessPiece.PieceType type;
+    final private ChessGame.TeamColor color;
+    final private ChessPiece.PieceType type;
+    private int moveCount;
 
     public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type) {
         this.color = pieceColor;
         this.type = type;
+        moveCount = 0;
+    }
+
+    public ChessPiece(ChessGame.TeamColor pieceColor, ChessPiece.PieceType type, int moveCount) {
+        this.color = pieceColor;
+        this.type = type;
+        this.moveCount = moveCount;
     }
 
     /**
@@ -31,6 +39,12 @@ public class ChessPiece {
         ROOK,
         PAWN
     }
+
+    public int getMoveCount() {
+        return moveCount;
+    }
+
+    public void addMoveCount() { moveCount++; }
 
     /**
      * @return Which team this chess piece belongs to

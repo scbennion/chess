@@ -49,20 +49,14 @@ public class ChessBoard {
         blackPieces = new HashMap<>();
     }
 
-    public void movePiece(ChessMove m, ChessPiece p) {
-        ChessPosition startPos = m.getStartPosition();
-        ChessPosition endPos = m.getEndPosition();
-        ChessGame.TeamColor c = p.getTeamColor();
-
+    private void updatePieceLocations (ChessPiece p, ChessPosition startPos, ChessPosition endPos, ChessGame.TeamColor c) {
         //check for updated king position
         if (p.getPieceType() == ChessPiece.PieceType.KING) {
             kingPos.put(c, endPos);
         }
 
-        //account for promotion
-        if (m.getPromotionPiece() != null) {
-            p = new ChessPiece(c, m.getPromotionPiece());
-        }
+        //update move count
+        p.addMoveCount();
 
         //update piece maps for my side and opposing side for capture
         switch (c) {
@@ -81,6 +75,19 @@ public class ChessBoard {
             }
         }
 
+    }
+
+    public void movePiece(ChessMove m, ChessPiece p) {
+        ChessPosition startPos = m.getStartPosition();
+        ChessPosition endPos = m.getEndPosition();
+        ChessGame.TeamColor c = p.getTeamColor();
+
+        //account for promotion
+        if (m.getPromotionPiece() != null) {
+            p = new ChessPiece(c, m.getPromotionPiece(), p.getMoveCount());
+        }
+
+        updatePieceLocations(p, startPos, endPos, c);
 
         //move piece
         squares[startPos.getRow()-1][startPos.getColumn()-1] = null;
