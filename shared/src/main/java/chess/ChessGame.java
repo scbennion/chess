@@ -56,20 +56,44 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        System.out.println(board);
         ChessPiece p =  board.getPiece(startPosition);
         ArrayList<ChessMove> validMoves = new ArrayList<>();
         if (p != null) {
             TeamColor c = p.getTeamColor();
             for (ChessMove m : p.pieceMoves(board, startPosition)) {
-                ChessBoard testCheckBoard = new ChessBoard(board);
-                testCheckBoard.movePiece(m);
-                if (!boardInCheck(c, testCheckBoard)) {
-                    validMoves.add(m);
+                if (isMoveWithoutCheck(m, c)) {
+                    switch (m.getSpecialMove()) {
+                        case LEFT_CASTLE -> {
+                            if (isMoveWithoutCheck(new ChessMove(m.getStartPosition(), m.getStartPosition(), null), c)
+                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 2), null), c)
+                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 3), null), c)
+                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 4), null), c)) {
+                                validMoves.add(m);
+                            }
+                        } case RIGHT_CASTLE -> {
+                            if (isMoveWithoutCheck(new ChessMove(m.getStartPosition(), m.getStartPosition(), null), c)
+                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 6), null), c)
+                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 7), null), c)) {
+                                validMoves.add(m);
+                            }
+                        } case LEFT_EN_PASSANT -> {
+
+                        }
+                        case RIGHT_EN_PASSANT -> {
+
+                        }
+                        case null -> validMoves.add(m);
+                    }
                 }
             }
         }
         return validMoves;
+    }
+
+    private boolean isMoveWithoutCheck(ChessMove m, TeamColor c) {
+        ChessBoard testCheckBoard = new ChessBoard(board);
+        testCheckBoard.movePiece(m);
+        return !boardInCheck(c, testCheckBoard);
     }
 
     /**
