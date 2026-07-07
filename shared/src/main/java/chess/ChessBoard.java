@@ -83,6 +83,15 @@ public class ChessBoard {
 
     }
 
+    public void removePiece(ChessPosition pos) {
+        switch (squares[pos.getRow()-1][pos.getColumn()-1].getTeamColor()) {
+            case WHITE -> whitePieces.remove(pos);
+            case BLACK -> blackPieces.remove(pos);
+            }
+        squares[pos.getRow()-1][pos.getColumn()-1] = null;
+    }
+
+
     public void movePiece(ChessMove m) {
         ChessPosition startPos = m.getStartPosition();
         ChessPosition endPos = m.getEndPosition();

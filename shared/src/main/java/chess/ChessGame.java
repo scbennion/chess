@@ -1,5 +1,7 @@
 package chess;
 
+import chess.movecalculator.PawnMovesCalculator;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Map;
@@ -77,10 +79,18 @@ public class ChessGame {
                                 validMoves.add(m);
                             }
                         } case LEFT_EN_PASSANT -> {
+                            ChessBoard testCheckBoard = new ChessBoard(board);
+                            testCheckBoard.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()-1));
+                            if (isMoveWithoutCheck(m, c, testCheckBoard)) {
+                                validMoves.add(m);
+                            }
 
-                        }
-                        case RIGHT_EN_PASSANT -> {
-
+                        } case RIGHT_EN_PASSANT -> {
+                            ChessBoard testCheckBoard = new ChessBoard(board);
+                            testCheckBoard.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()+1));
+                            if (isMoveWithoutCheck(m, c, testCheckBoard)) {
+                                validMoves.add(m);
+                            }
                         }
                         case null -> validMoves.add(m);
                     }
@@ -91,7 +101,10 @@ public class ChessGame {
     }
 
     private boolean isMoveWithoutCheck(ChessMove m, TeamColor c) {
-        ChessBoard testCheckBoard = new ChessBoard(board);
+        return isMoveWithoutCheck(m, c, new ChessBoard(board));
+    }
+
+    private boolean isMoveWithoutCheck(ChessMove m, TeamColor c, ChessBoard testCheckBoard) {
         testCheckBoard.movePiece(m);
         return !boardInCheck(c, testCheckBoard);
     }
@@ -128,13 +141,19 @@ public class ChessGame {
      * flag as intended, so it has to be to set by deduction
      */
     private ChessMove trySetSpecialMoveField(ChessMove move) {
-        if (board.getPiece(move.getStartPosition()).getPieceType() == ChessPiece.PieceType.KING) {
+        ChessPiece.PieceType pieceType = board.getPiece(move.getStartPosition()).getPieceType();
+        if (pieceType == ChessPiece.PieceType.KING) {
             int result = move.getStartPosition().getColumn() - move.getEndPosition().getColumn();
             if (result == 2) {
                 move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.LEFT_CASTLE);
-            }
-            else if (result == -2) {
+            } else if (result == -2) {
                 move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.RIGHT_CASTLE);
+            }
+        } else if (pieceType == ChessPiece.PieceType.PAWN) {
+            if (new PawnMovesCalculator(board.getPiece(move.getStartPosition()).getTeamColor(), move.getStartPosition(), board.size).isEnPassant(board, move.getStartPosition(), -1)) {
+                move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.LEFT_EN_PASSANT);
+            } else if (new PawnMovesCalculator(board.getPiece(move.getStartPosition()).getTeamColor(), move.getStartPosition(), board.size).isEnPassant(board, move.getStartPosition(), 1)) {
+                move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.RIGHT_EN_PASSANT);
             }
         }
         return move;
@@ -153,9 +172,9 @@ public class ChessGame {
                 } case RIGHT_CASTLE -> {
                     int row = m.getStartPosition().getRow();
                     board.movePiece(new ChessMove(new ChessPosition(row, 8), new ChessPosition(row, 6), null));
-                } case LEFT_EN_PASSANT -> {
-                } case RIGHT_EN_PASSANT -> {
-                }
+                } case LEFT_EN_PASSANT -> board.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()-1));
+                case RIGHT_EN_PASSANT -> board.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()+1));
+
             }
         }
     }
