@@ -1,5 +1,7 @@
 package chess;
 
+import chess.movecalculator.PawnMovesCalculator;
+
 import java.util.Objects;
 
 /**
@@ -12,7 +14,7 @@ public class ChessMove {
     private final ChessPosition startPosition;
     private final ChessPosition endPosition;
     private final ChessPiece.PieceType promotionPiece;
-    private final SpecialMove specialMove;
+    private SpecialMove specialMove;
 
     public enum SpecialMove {
         LEFT_CASTLE,
@@ -67,6 +69,25 @@ public class ChessMove {
         return promotionPiece;
     }
 
+    public void trySetSpecialMoveField(ChessBoard board) {
+        ChessPiece.PieceType pieceType = board.getPiece(startPosition).getPieceType();
+        if (pieceType == ChessPiece.PieceType.KING) {
+            int result = startPosition.getColumn() - endPosition.getColumn();
+            if (result == 2) {
+                specialMove = SpecialMove.LEFT_CASTLE;
+            } else if (result == -2) {
+                specialMove = SpecialMove.RIGHT_CASTLE;
+            }
+        } else if (pieceType == ChessPiece.PieceType.PAWN) {
+            if (new PawnMovesCalculator(board.getPiece(startPosition).getTeamColor(), startPosition, board.size).isEnPassant(board, startPosition, -1)) {
+                specialMove = SpecialMove.LEFT_EN_PASSANT;
+            } else if (new PawnMovesCalculator(board.getPiece(startPosition).getTeamColor(), startPosition, board.size).isEnPassant(board, startPosition, 1)) {
+                specialMove = SpecialMove.RIGHT_EN_PASSANT;
+            }
+        }
+    }
+
+
     @Override
     public String toString() {
         if (promotionPiece == null) {
@@ -85,7 +106,7 @@ public class ChessMove {
         return Objects.equals(startPosition, chessMove.startPosition)
                 && Objects.equals(endPosition, chessMove.endPosition)
                 && promotionPiece == chessMove.promotionPiece;
-                //&& specialMove == chessMove.specialMove;
+                //&& specialMove == chessMove.specialMove; Can't do this because of how test cases are set up
     }
 
     @Override

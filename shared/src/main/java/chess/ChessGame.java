@@ -1,11 +1,6 @@
 package chess;
 
-import chess.movecalculator.PawnMovesCalculator;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A class that can manage a chess game, making moves on a board
@@ -14,15 +9,18 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessGame {
-    ChessBoard board;
-    TeamColor turn;
-    ChessPosition lastMovedPosition;
+    private ChessBoard board;
+    private TeamColor turn;
+    private Set<ChessMove> previousEnPassantOpportunities;
+    private Set<ChessMove> enPassantOpportunities;
+
 
     public ChessGame() {
         board = new ChessBoard();
         board.resetBoard();
         turn = TeamColor.WHITE;
-        lastMovedPosition = null;
+        previousEnPassantOpportunities = new HashSet<>();
+        enPassantOpportunities = new HashSet<>();
     }
 
     /**
@@ -81,15 +79,17 @@ public class ChessGame {
                         } case LEFT_EN_PASSANT -> {
                             ChessBoard testCheckBoard = new ChessBoard(board);
                             testCheckBoard.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()-1));
-                            if (isMoveWithoutCheck(m, c, testCheckBoard)) {
+                            if (isMoveWithoutCheck(m, c, testCheckBoard) && !previousEnPassantOpportunities.contains(m)) {
                                 validMoves.add(m);
+                                enPassantOpportunities.add(m);
                             }
 
                         } case RIGHT_EN_PASSANT -> {
                             ChessBoard testCheckBoard = new ChessBoard(board);
                             testCheckBoard.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()+1));
-                            if (isMoveWithoutCheck(m, c, testCheckBoard)) {
+                            if (isMoveWithoutCheck(m, c, testCheckBoard) && !previousEnPassantOpportunities.contains(m)) {
                                 validMoves.add(m);
+                                enPassantOpportunities.add(m);
                             }
                         }
                         case null -> validMoves.add(m);
@@ -122,7 +122,14 @@ public class ChessGame {
             throw new InvalidMoveException();
 
         if (move.getSpecialMove() == null) {
-            move = trySetSpecialMoveField(move);
+            move.trySetSpecialMoveField(board);
+        }
+
+        //to update en-passant stuff. SUPER SCUFFED
+        for (int row = 1; row <= 8; row++ ) {
+            for (int col = 1; col <= 8; col++ ) {
+                validMoves(new ChessPosition(row, col));
+            }
         }
 
         Collection<ChessMove> moves = validMoves(startPos);
@@ -130,33 +137,11 @@ public class ChessGame {
             board.movePiece(move);
             tryMoveSecondPiece(move);
             turn = oppositeColor(turn);
-            lastMovedPosition = move.getEndPosition();
+            previousEnPassantOpportunities.addAll(enPassantOpportunities);
+            enPassantOpportunities.clear();
         } else {
             throw new InvalidMoveException();
         }
-    }
-
-    /**
-     * Some of the test cases in Castling Tests don't set the special move
-     * flag as intended, so it has to be to set by deduction
-     */
-    private ChessMove trySetSpecialMoveField(ChessMove move) {
-        ChessPiece.PieceType pieceType = board.getPiece(move.getStartPosition()).getPieceType();
-        if (pieceType == ChessPiece.PieceType.KING) {
-            int result = move.getStartPosition().getColumn() - move.getEndPosition().getColumn();
-            if (result == 2) {
-                move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.LEFT_CASTLE);
-            } else if (result == -2) {
-                move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.RIGHT_CASTLE);
-            }
-        } else if (pieceType == ChessPiece.PieceType.PAWN) {
-            if (new PawnMovesCalculator(board.getPiece(move.getStartPosition()).getTeamColor(), move.getStartPosition(), board.size).isEnPassant(board, move.getStartPosition(), -1)) {
-                move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.LEFT_EN_PASSANT);
-            } else if (new PawnMovesCalculator(board.getPiece(move.getStartPosition()).getTeamColor(), move.getStartPosition(), board.size).isEnPassant(board, move.getStartPosition(), 1)) {
-                move = new ChessMove(move.getStartPosition(), move.getEndPosition(), null, ChessMove.SpecialMove.RIGHT_EN_PASSANT);
-            }
-        }
-        return move;
     }
 
 
