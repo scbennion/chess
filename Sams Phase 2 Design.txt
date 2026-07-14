@@ -1,0 +1,170 @@
+actor Client
+participant Server
+participant Handler
+participant Service
+participant DataAccess
+database db
+
+
+entryspacing 0.6
+group#43829c #lightblue Registration
+Client -> Server: [POST] /user\n{"username":" ", "password":" ", "email":" "}
+Server -> Handler: {"username":" ", "password":" ", "email":" "}\n
+Handler -> Service: register(UserData)
+Service -> DataAccess: getUser(username)
+DataAccess -> db:Find UserData by username
+break User with username already exists
+DataAccess --> Service: UserData
+Service --> Server: AlreadyTakenException
+Server --> Client: 403\n{"message": "Error: username already taken"}
+end
+DataAccess --> Service: null
+Service -> DataAccess:createUser(UserData)
+DataAccess -> db:Add UserData
+//registering should log the user in
+Service -> DataAccess:createAuth(AuthData)
+DataAccess -> db:Add AuthData
+Service --> Handler: AuthData
+Handler --> Server: {"username" : " ", "authToken" : " "}
+Server --> Client: 200\n{"username" : " ", "authToken" : " "}
+end
+
+group#orange #FCEDCA Login
+Client -> Server: [POST] /session\n{username, password}
+Server -> Handler: {"username":" ", "password":" "}
+Handler ->Service: logIn(UserData)
+//user data will contain a null email, but it still seems a simple, readable way to hold the username and password
+Service -> DataAccess: getUser(username)
+DataAccess -> db : Find UserData by username
+break User with username does not exist
+DataAccess --> Service: null
+Service --> Server: InvalidUsernameException
+Server --> Client: 401\n{ "message": "Error: unauthorized" }
+end
+DataAccess --> Service : UserData
+Service -> Service : verifyPassword()
+break Password is incorrect
+Service --> Server: InvalidPasswordException
+Server --> Client: 401\n{ "message": "Error: unauthorized" }
+end
+Service -> DataAccess : createAuth(AuthData)
+DataAccess -> db : Add AuthData
+DataAccess --> Service
+Service --> Handler: AuthData
+Handler--> Server: {"username:" ", "authToken":" "}
+Server--> Client: 200\n{"username":" ", "authToken":" "}
+end
+
+group#green #lightgreen Logout
+//authToken is a header which is why no brackets are necessary for a request body
+//The Handler receives the full request (javaLin object) not just the authToken,
+//which encapsulates in some way the [DELETE]/session idea
+//that's how it knows to log out
+Client -> Server: [DELETE] /session\nauthToken
+Server-> Handler:authToken
+Handler->Service:logOut(authToken)
+Service->DataAccess:getAuth(authToken)
+DataAccess->db:Find AuthData by authToken
+break authToken is incorrect
+DataAccess --> Service : null
+Service --> Server : InvalidAuthTokenException
+Server --> Client : 401\n{ "message": "Error: unauthorized" }
+end
+DataAccess --> Service : AuthData
+Service -> DataAccess : deleteAuth(authToken)
+DataAccess -> db : Remove AuthData by authToken
+Service --> Handler :
+Handler --> Server : 
+Server --> Client : 200\n{}
+end
+
+group#red #pink List Games
+
+Client -> Server: [GET] /game\nauthToken
+Server -> Handler: authToken
+Handler -> Service: listGames(authToken)
+Service -> DataAccess : getAuth(authToken)
+DataAccess->db:Find AuthData by authToken
+break authToken is incorrect
+DataAccess --> Service : null
+Service --> Server : InvalidAuthTokenException
+Server --> Client : 401\n{ "message": "Error: unauthorized" }
+end
+DataAccess --> Service : authData
+Service -> DataAccess : listGames()
+DataAccess -> db : Find all GameData objects
+DataAccess --> Service : GameData[] 
+Service --> Handler : GameData[] 
+Handler --> Server : { "games": [{"gameID": 1234, "whiteUsername":"",\n "blackUsername":"", "gameName:""} ]}
+Server --> Client : 200\n { "games": [{"gameID": 1234, "whiteUsername":"",\n "blackUsername":"", "gameName:""} ]}
+end
+
+group#d790e0 #E3CCE6 Create Game 
+Client -> Server: [POST] /game\nauthToken\n{gameName}
+Server -> Handler: authToken\n{gameName}
+Handler -> Service: createGame(authToken, gameName)
+Service -> DataAccess : getAuth(authToken)
+DataAccess->db:Find AuthData by authToken
+break authToken is incorrect
+DataAccess --> Service : null
+Service --> Server : InvalidAuthTokenException
+Server --> Client : 401\n{ "message": "Error: unauthorized" }
+end
+DataAccess --> Service: authData
+Service -> DataAccess : createGame(gameName) 
+DataAccess -> db : Create new GameData object
+DataAccess -> Service : GameData
+Service -> Handler : gameID
+Handler -> Server : { "gameID": 1234 }
+Server -> Client : 200\n{ "gameID": 1234 }
+end
+
+group#yellow #lightyellow Join Game #black
+Client -> Server: [PUT] /game\nauthToken\n{playerColor, gameID}
+Server -> Handler: authToken\n{playerColor, gameID}
+Handler -> Service: joinGame(authToken, playerColor, gameID)
+Service -> DataAccess : getAuth(authToken)
+DataAccess->db:Find AuthData by authToken
+break authToken is incorrect
+DataAccess --> Service : null
+Service --> Server : InvalidAuthTokenException
+Server --> Client : 401\n{ "message": "Error: unauthorized" }
+end
+DataAccess --> Service: AuthData
+Service -> DataAccess: getGame(gameID)
+DataAccess -> db: Find GameData by gameID
+break gameID doesn't exist
+DataAccess --> Service: null
+Service --> Server: InvalidGameIDException
+Server--> Client: 400\n{ "message": "Error:  bad request" }
+end
+DataAccess --> Service: GameData
+Service -> Service: addPlayerColor(GameData)
+break Player color already exists
+Service --> Server: AlreadyTakenException
+Server --> Client: 403\n{"message": "Error: already taken"}
+end
+Service -> DataAccess: updateGameData(GameData)
+DataAccess -> db: replace GameData object by gameID
+Service --> Handler: 
+Handler --> Server: 
+Server --> Client: 200\n{}
+end
+
+group#gray #lightgray Clear application 
+Client -> Server: [DELETE] /db
+Server -> Handler: 
+Handler -> Service: clear()
+Service -> DataAccess: clearGameData()
+DataAccess -> db: Remove all GameData objects in GameData db
+Service -> DataAccess: clearUserData()
+DataAccess -> db: Remove all UserData objects in UserData db
+Service -> DataAccess: clearAuthData()
+DataAccess -> db: Remove all AuthData objects in AuthData db
+Service --> Handler:
+Handler --> Server: 
+Server --> Client: 200\n{}
+end
+
+//question about better understanding the exceptions
+//how does the handler know what command it's receiving? 
