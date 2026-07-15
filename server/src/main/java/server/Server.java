@@ -7,8 +7,9 @@ public class Server {
     private final Javalin javalin;
 
     public Server() {
-        javalin = Javalin.create(config -> config.staticFiles.add("web"));
-
+        ChessHandler handler = new ChessHandler();
+        javalin = Javalin.create(config -> config.staticFiles.add("web"))
+                .post("/user", handler::processRegister);
         // Register your endpoints and exception handlers here.
 
     }
