@@ -1,6 +1,7 @@
 package server;
 
 import io.javalin.*;
+import io.javalin.http.Context;
 
 public class Server {
 
@@ -9,7 +10,8 @@ public class Server {
     public Server() {
         ChessHandler handler = new ChessHandler();
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
-                .post("/user", handler::processRegister);
+                .post("/user", handler::processRegister)
+                .exception(Exception.class, handler::exceptionHandler);
         // Register your endpoints and exception handlers here.
 
     }
