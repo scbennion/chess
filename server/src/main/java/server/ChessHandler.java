@@ -28,19 +28,22 @@ public class ChessHandler {
     public void processLogout(Context ctx) throws DataAccessException {
         String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
         service.logout(authToken);
+        ctx.json(new Gson().toJson(Map.of()));
     }
 
     public void processListGames(Context ctx) throws DataAccessException {
         String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
         GameData[] games = service.listGames(authToken);
-        System.out.println(games);
         ctx.result(new Gson().toJson(games));
     }
 
     public void processCreateGame(Context ctx) throws DataAccessException {}
     public void processJoinGame(Context ctx) throws DataAccessException {}
-    public void processClear(Context ctx) throws DataAccessException {}
 
+    public void processClear(Context ctx) throws DataAccessException {
+        service.clear();
+        ctx.json(new Gson().toJson(Map.of()));
+    }
 
     public void exceptionHandler(Exception e, Context ctx) {
         ctx.json(new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()))));

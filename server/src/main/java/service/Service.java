@@ -54,5 +54,11 @@ public class Service {
         } return gameDAO.listGames();
     }
 
+    public void clear() {
+        gameDAO.clear();
+        userDAO.clear();
+        authDAO.clear();
+    }
+
 
 }

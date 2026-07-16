@@ -18,6 +18,7 @@ public class ServiceTests {
         }
         Assertions.assertNotNull(authData);
         Assertions.assertEquals("username", authData.username());
+        serviceTest.clear();
     }
 
     @Test
@@ -31,12 +32,31 @@ public class ServiceTests {
         Assertions.assertDoesNotThrow(()->serviceTest.register(registerRequest));
         UserData logInRequest = new UserData(registerRequest.username(), registerRequest.password(), null);
         Assertions.assertDoesNotThrow(()->serviceTest.login(logInRequest));
+        serviceTest.clear();
     }
 
     @Test
     public void logInNegative() {
         Assertions.assertThrows(InvalidUsernameException.class, ()->serviceTest.login(new UserData("fake account", "1234", null)));
     }
+
+//    @Test
+//    public void logOutPositive() {
+//        UserData registerRequest = new UserData("bennion", "incorrect", "hi@gmail.com");
+//        Assertions.assertDoesNotThrow(()->serviceTest.register(registerRequest));
+//        UserData logInRequest = new UserData(registerRequest.username(), registerRequest.password(), null);
+//        Assertions.assertDoesNotThrow(()->serviceTest.login(logInRequest));
+//        serviceTest.clear();
+//    }
+
+    @Test
+    public void clearPositive() {
+        UserData registerRequest = new UserData("usie", "pasie", "emie");
+        Assertions.assertDoesNotThrow(()->serviceTest.register(registerRequest));
+        serviceTest.clear();
+        Assertions.assertDoesNotThrow(()->serviceTest.register(registerRequest));
+    }
+
 
 
 
