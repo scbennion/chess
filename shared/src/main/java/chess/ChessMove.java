@@ -79,9 +79,11 @@ public class ChessMove {
                 specialMove = SpecialMove.RIGHT_CASTLE;
             }
         } else if (pieceType == ChessPiece.PieceType.PAWN) {
-            if (new PawnMovesCalculator(board.getPiece(startPosition).getTeamColor(), startPosition, board.size).isEnPassant(board, startPosition, -1)) {
+            if (new PawnMovesCalculator(board.getPiece(startPosition).getTeamColor(), startPosition, board.size)
+                    .isEnPassant(board, startPosition, -1)) {
                 specialMove = SpecialMove.LEFT_EN_PASSANT;
-            } else if (new PawnMovesCalculator(board.getPiece(startPosition).getTeamColor(), startPosition, board.size).isEnPassant(board, startPosition, 1)) {
+            } else if (new PawnMovesCalculator(board.getPiece(startPosition).getTeamColor(), startPosition, board.size)
+                    .isEnPassant(board, startPosition, 1)) {
                 specialMove = SpecialMove.RIGHT_EN_PASSANT;
             }
         }

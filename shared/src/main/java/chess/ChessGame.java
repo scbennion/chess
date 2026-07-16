@@ -62,42 +62,46 @@ public class ChessGame {
             TeamColor c = p.getTeamColor();
             for (ChessMove m : p.pieceMoves(board, startPosition)) {
                 if (isMoveWithoutCheck(m, c)) {
-                    switch (m.getSpecialMove()) {
-                        case LEFT_CASTLE -> {
-                            if (isMoveWithoutCheck(new ChessMove(m.getStartPosition(), m.getStartPosition(), null), c)
-                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 2), null), c)
-                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 3), null), c)
-                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 4), null), c)) {
-                                validMoves.add(m);
-                            }
-                        } case RIGHT_CASTLE -> {
-                            if (isMoveWithoutCheck(new ChessMove(m.getStartPosition(), m.getStartPosition(), null), c)
-                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 6), null), c)
-                                    && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 7), null), c)) {
-                                validMoves.add(m);
-                            }
-                        } case LEFT_EN_PASSANT -> {
-                            ChessBoard testCheckBoard = new ChessBoard(board);
-                            testCheckBoard.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()-1));
-                            if (isMoveWithoutCheck(m, c, testCheckBoard) && !previousEnPassantOpportunities.contains(m)) {
-                                validMoves.add(m);
-                                enPassantOpportunities.add(m);
-                            }
-
-                        } case RIGHT_EN_PASSANT -> {
-                            ChessBoard testCheckBoard = new ChessBoard(board);
-                            testCheckBoard.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()+1));
-                            if (isMoveWithoutCheck(m, c, testCheckBoard) && !previousEnPassantOpportunities.contains(m)) {
-                                validMoves.add(m);
-                                enPassantOpportunities.add(m);
-                            }
-                        }
-                        case null -> validMoves.add(m);
-                    }
+                    addMoveAndCheckForSpecialMoves(m, c, validMoves);
                 }
             }
         }
         return validMoves;
+    }
+
+    private void addMoveAndCheckForSpecialMoves(ChessMove m, TeamColor c, ArrayList<ChessMove> validMoves) {
+        switch (m.getSpecialMove()) {
+            case LEFT_CASTLE -> {
+                if (isMoveWithoutCheck(new ChessMove(m.getStartPosition(), m.getStartPosition(), null), c)
+                        && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 2), null), c)
+                        && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 3), null), c)
+                        && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 4), null), c)) {
+                    validMoves.add(m);
+                }
+            } case RIGHT_CASTLE -> {
+                if (isMoveWithoutCheck(new ChessMove(m.getStartPosition(), m.getStartPosition(), null), c)
+                        && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 6), null), c)
+                        && isMoveWithoutCheck(new ChessMove(m.getStartPosition(), new ChessPosition(m.getStartPosition().getRow(), 7), null), c)) {
+                    validMoves.add(m);
+                }
+            } case LEFT_EN_PASSANT -> {
+                ChessBoard testCheckBoard = new ChessBoard(board);
+                testCheckBoard.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()-1));
+                if (isMoveWithoutCheck(m, c, testCheckBoard) && !previousEnPassantOpportunities.contains(m)) {
+                    validMoves.add(m);
+                    enPassantOpportunities.add(m);
+                }
+
+            } case RIGHT_EN_PASSANT -> {
+                ChessBoard testCheckBoard = new ChessBoard(board);
+                testCheckBoard.removePiece(new ChessPosition(m.getStartPosition().getRow(), m.getStartPosition().getColumn()+1));
+                if (isMoveWithoutCheck(m, c, testCheckBoard) && !previousEnPassantOpportunities.contains(m)) {
+                    validMoves.add(m);
+                    enPassantOpportunities.add(m);
+                }
+            }
+            case null -> validMoves.add(m);
+        }
     }
 
     private boolean isMoveWithoutCheck(ChessMove m, TeamColor c) {
@@ -118,9 +122,9 @@ public class ChessGame {
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPos = move.getStartPosition();
         ChessPiece piece = board.getPiece(startPos);
-        if (piece == null || piece.getTeamColor() != turn)
+        if (piece == null || piece.getTeamColor() != turn) {
             throw new InvalidMoveException();
-
+        }
         if (move.getSpecialMove() == null) {
             move.trySetSpecialMoveField(board);
         }
@@ -220,8 +224,9 @@ public class ChessGame {
         for (ChessPosition p: board.getSidePieces(teamColor).keySet()) {
             moves.addAll(validMoves(p));
         }
-        if (!isInCheck(teamColor))
+        if (!isInCheck(teamColor)) {
             return moves.isEmpty();
+            }
         return false;
     }
 
