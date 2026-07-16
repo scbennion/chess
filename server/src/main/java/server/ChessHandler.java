@@ -3,6 +3,7 @@ import dataaccess.*;
 import io.javalin.http.Context;
 import com.google.gson.Gson;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import service.Service;
 
@@ -28,7 +29,14 @@ public class ChessHandler {
         String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
         service.logout(authToken);
     }
-    public void processListGames(Context ctx) throws DataAccessException {}
+
+    public void processListGames(Context ctx) throws DataAccessException {
+        String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+        GameData[] games = service.listGames(authToken);
+        System.out.println(games);
+        ctx.result(new Gson().toJson(games));
+    }
+
     public void processCreateGame(Context ctx) throws DataAccessException {}
     public void processJoinGame(Context ctx) throws DataAccessException {}
     public void processClear(Context ctx) throws DataAccessException {}

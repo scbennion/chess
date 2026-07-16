@@ -2,6 +2,7 @@ package service;
 
 import dataaccess.*;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 import java.util.UUID;
 
@@ -18,7 +19,7 @@ public class Service {
     }
 
     public AuthData register(UserData input) throws DataAccessException {
-        if (input.username() == null || input.password() == null || input.email() == null) {
+        if (input == null || input.username() == null || input.password() == null || input.email() == null) {
             throw new BadRequestException();
         } if (userDAO.getUser(input.username()) != null) {
            throw new AlreadyTakenException();
@@ -45,5 +46,13 @@ public class Service {
             throw new InvalidAuthTokenException();
         } authDAO.deleteAuth(authToken);
     }
+
+    public GameData[] listGames(String authToken) throws DataAccessException {
+        AuthData authData = authDAO.getAuth(authToken);
+        if (authData == null) {
+            throw new InvalidAuthTokenException();
+        } return gameDAO.listGames();
+    }
+
 
 }
