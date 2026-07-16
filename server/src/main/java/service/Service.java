@@ -17,7 +17,9 @@ public class Service {
         gameDAO = new MemoryGameDAO();
     }
 
-    public AuthData register(UserData input) throws AlreadyTakenException {
+    public AuthData register(UserData input) throws DataAccessException {
+        if (input.username() == null || input.password() == null || input.email() == null)
+            throw new BadRequestException();
         if (userDAO.getUser(input.username()) != null) {
            throw new AlreadyTakenException();
         }
