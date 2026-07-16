@@ -8,19 +8,25 @@ import service.Service;
 
 import java.util.Map;
 
-
 public class ChessHandler {
     private final Service service = new Service();
 
     public void processRegister(Context ctx) throws DataAccessException {
         UserData inputs = new Gson().fromJson(ctx.body(), UserData.class);
-        System.out.printf("deserialized inputs: %s\n", inputs);
+//        System.out.printf("deserialized inputs: %s\n", inputs);
         AuthData authData = service.register(inputs);
         ctx.result(new Gson().toJson(authData));
     }
 
-    public void processLogin(Context ctx) throws DataAccessException {}
-    public void processLogout(Context ctx) throws DataAccessException {}
+    public void processLogin(Context ctx) throws DataAccessException {
+        UserData inputs = new Gson().fromJson(ctx.body(), UserData.class);
+        AuthData authData = service.login(inputs);
+        ctx.result(new Gson().toJson(authData));
+    }
+
+    public void processLogout(Context ctx) throws DataAccessException {
+
+    }
     public void processListGames(Context ctx) throws DataAccessException {}
     public void processCreateGame(Context ctx) throws DataAccessException {}
     public void processJoinGame(Context ctx) throws DataAccessException {}

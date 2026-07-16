@@ -3,13 +3,16 @@ package dataaccess;
 import model.AuthData;
 
 import java.util.HashMap;
+import java.util.UUID;
 
 public class MemoryAuthDAO implements AuthDAO {
     private HashMap<String, AuthData> database = new HashMap<>();
 
     @Override
-    public void addAuth(AuthData authData) {
+    public AuthData createAuth(String username) {
+        AuthData authData = new AuthData(generateToken(), username);
         database.put(authData.authToken(), authData);
+        return authData;
     }
 
     @Override
@@ -26,4 +29,9 @@ public class MemoryAuthDAO implements AuthDAO {
     public void clear() {
         database.clear();
     }
+
+    private String generateToken() {
+        return UUID.randomUUID().toString();
+    }
+
 }

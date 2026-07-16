@@ -18,20 +18,25 @@ public class Service {
     }
 
     public AuthData register(UserData input) throws DataAccessException {
-        if (input.username() == null || input.password() == null || input.email() == null)
+        if (input.username() == null || input.password() == null || input.email() == null) {
             throw new BadRequestException();
-        if (userDAO.getUser(input.username()) != null) {
+        } if (userDAO.getUser(input.username()) != null) {
            throw new AlreadyTakenException();
         }
         userDAO.createUser(input);
-        AuthData authData = new AuthData(generateToken(), input.username());
-        authDAO.addAuth(authData);
-        return authData;
+        return authDAO.createAuth(input.username());
     }
 
-    private String generateToken() {
-        return UUID.randomUUID().toString();
-    }
-
+    public AuthData login(UserData loginRequest) throws DataAccessException {
+        if (loginRequest.username() == null || loginRequest.password() == null || loginRequest.email() != null) {
+            throw new BadRequestException();
+        } UserData userData = userDAO.getUser(loginRequest.username());
+        if (userData == null) {
+            throw new InvalidUsernameException();
+        } if (!userData.password().equals(loginRequest.password())) {
+            throw new InvalidPasswordException();
+        }
+        return authDAO.createAuth(userData.username());
+}
 
 }
