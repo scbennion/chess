@@ -25,7 +25,8 @@ public class ChessHandler {
     }
 
     public void processLogout(Context ctx) throws DataAccessException {
-
+        String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+        service.logout(authToken);
     }
     public void processListGames(Context ctx) throws DataAccessException {}
     public void processCreateGame(Context ctx) throws DataAccessException {}

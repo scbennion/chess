@@ -37,6 +37,13 @@ public class Service {
             throw new InvalidPasswordException();
         }
         return authDAO.createAuth(userData.username());
-}
+    }
+
+    public void logout(String authToken) throws DataAccessException {
+        AuthData authData = authDAO.getAuth(authToken);
+        if (authData == null) {
+            throw new InvalidAuthTokenException();
+        } authDAO.deleteAuth(authToken);
+    }
 
 }
