@@ -19,10 +19,23 @@ public class ChessHandler {
         ctx.result(new Gson().toJson(authData));
     }
 
+    public void processLogin(Context ctx) throws DataAccessException {}
+    public void processLogout(Context ctx) throws DataAccessException {}
+    public void processListGames(Context ctx) throws DataAccessException {}
+    public void processCreateGame(Context ctx) throws DataAccessException {}
+    public void processJoinGame(Context ctx) throws DataAccessException {}
+    public void processClear(Context ctx) throws DataAccessException {}
+
+
     public void exceptionHandler(Exception e, Context ctx) {
         ctx.json(new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()))));
         switch (e) {
             case AlreadyTakenException alreadyTakenException -> ctx.status(403);
+            case BadRequestException badRequestException -> ctx.status(400);
+            case InvalidAuthTokenException invalidAuthTokenException -> ctx.status(401);
+            case InvalidGameIDException invalidGameIDException -> ctx.status(401);
+            case InvalidPasswordException invalidPasswordException -> ctx.status(401);
+            case InvalidUsernameException invalidUsernameException -> ctx.status(401);
             default -> ctx.status(500);
         }
     }

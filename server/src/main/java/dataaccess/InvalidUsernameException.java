@@ -1,7 +1,7 @@
 package dataaccess;
 
 public class InvalidUsernameException extends DataAccessException {
-    public InvalidUsernameException(String message) {
-        super(message);
+    public InvalidUsernameException() {
+        super("unauthorized");
     }
 }
