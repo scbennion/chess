@@ -50,7 +50,12 @@ public class ChessHandler {
     }
 
     public void processJoinGame(Context ctx) throws DataAccessException {
-        String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+       String authToken;
+        try {
+            authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+        } catch (Exception e) {
+            throw new InvalidAuthTokenException();
+        }
         HashMap<String, ?> inputMap = new Gson().fromJson(ctx.body(), HashMap.class);
         int gameID;
         if (inputMap.get("gameID") instanceof Double) {

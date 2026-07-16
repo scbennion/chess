@@ -8,7 +8,7 @@ import java.util.Random;
 
 public class MemoryGameDAO implements GameDAO {
     private HashMap<Integer, GameData> database = new HashMap<>();
-    private final Random randIntGenerator = new Random();
+    private int gameID = 1;
 
     @Override
     public GameData createGame(String gameName) {
@@ -39,6 +39,6 @@ public class MemoryGameDAO implements GameDAO {
     }
 
     private int generateGameID() {
-        return randIntGenerator.nextInt();
+        return gameID++;
     }
 }
