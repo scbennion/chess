@@ -40,6 +40,15 @@ public class ServiceTests {
         Assertions.assertThrows(InvalidUsernameException.class, ()->serviceTest.login(new UserData("fake account", "1234", null)));
     }
 
+    @Test
+    public void listPositive() {
+        UserData registerRequest = new UserData("testuser", "inc", "hi@gmail.com");
+        AuthData authData = Assertions.assertDoesNotThrow(()->serviceTest.register(registerRequest));
+        Assertions.assertDoesNotThrow(()->serviceTest.createGame(authData.authToken(), "cool game"));
+        Assertions.assertDoesNotThrow(()->serviceTest.createGame(authData.authToken(), "boring game"));
+        Assertions.assertDoesNotThrow(()->serviceTest.listGames(authData.authToken()));
+    }
+
 //    @Test
 //    public void logOutPositive() {
 //        UserData registerRequest = new UserData("bennion", "incorrect", "hi@gmail.com");

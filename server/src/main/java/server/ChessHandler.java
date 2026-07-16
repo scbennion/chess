@@ -35,18 +35,31 @@ public class ChessHandler {
     public void processListGames(Context ctx) throws DataAccessException {
         String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
         GameData[] games = service.listGames(authToken);
-        ctx.result(new Gson().toJson(games));
+        ctx.json(new Gson().toJson(Map.of("games", games)));
     }
 
     public void processCreateGame(Context ctx) throws DataAccessException {
         String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
-        HashMap<String, String> gameNameMap = new Gson().fromJson(ctx.body(), HashMap.class);
-        String gameName = gameNameMap.get("gameName");
+        HashMap<String, String> inputMap = new Gson().fromJson(ctx.body(), HashMap.class);
+        String gameName = inputMap.get("gameName");
         int gameID = service.createGame(authToken, gameName);
         ctx.json(new Gson().toJson(Map.of("gameID", gameID)));
     }
 
-    public void processJoinGame(Context ctx) throws DataAccessException {}
+    public void processJoinGame(Context ctx) throws DataAccessException {
+        String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+        HashMap<String, ?> inputMap = new Gson().fromJson(ctx.body(), HashMap.class);
+        int gameID;
+        if (inputMap.get("gameID") instanceof Double) {
+            gameID = ((Double)inputMap.get("gameID")).intValue();
+        } else if (inputMap.get("gameID") instanceof Integer){
+            gameID = (Integer)inputMap.get("gameID");
+        } else {
+            throw new InvalidGameIDException();
+        }
+        service.joinGame(authToken, (String)inputMap.get("playerColor"), gameID);
+        ctx.result(new Gson().toJson(Map.of()));
+    }
 
     public void processClear(Context ctx) throws DataAccessException {
         service.clear();
@@ -59,7 +72,7 @@ public class ChessHandler {
             case AlreadyTakenException alreadyTakenException -> ctx.status(403);
             case BadRequestException badRequestException -> ctx.status(400);
             case InvalidAuthTokenException invalidAuthTokenException -> ctx.status(401);
-            case InvalidGameIDException invalidGameIDException -> ctx.status(401);
+            case InvalidGameIDException invalidGameIDException -> ctx.status(400);
             case InvalidPasswordException invalidPasswordException -> ctx.status(401);
             case InvalidUsernameException invalidUsernameException -> ctx.status(401);
             default -> ctx.status(500);

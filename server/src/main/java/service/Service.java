@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame.TeamColor;
 import dataaccess.*;
 import model.AuthData;
 import model.GameData;
@@ -62,6 +63,45 @@ public class Service {
         }
         GameData gameData = gameDAO.createGame(gameName);
         return gameData.gameID();
+    }
+
+    public void joinGame(String authToken, String colorString, int gameID) throws DataAccessException {
+        AuthData authData = authDAO.getAuth(authToken);
+        if (authData == null) {
+            System.out.println("Invalid Auth Token");
+            throw new InvalidAuthTokenException();
+        }
+
+        GameData gameData = gameDAO.getGame(gameID);
+        if (gameData == null) {
+            throw new InvalidGameIDException();
+        }
+
+        TeamColor color;
+        try {
+            color = TeamColor.valueOf(colorString);
+        } catch (IllegalArgumentException e) {
+            System.out.println("You have reached this point");
+            throw new BadRequestException();
+        }
+
+        switch(color) {
+            case WHITE -> {
+                if (gameData.whiteUsername() != null) {
+                    throw new AlreadyTakenException();
+                } else {
+                    gameData = new GameData(gameData.gameID(), authData.username(), gameData.blackUsername(), gameData.gameName(), gameData.game());
+                }
+            } case BLACK -> {
+                if (gameData.blackUsername() != null) {
+                    throw new AlreadyTakenException();
+                } else {
+                    gameData = new GameData(gameData.gameID(), gameData.whiteUsername(), authData.username(), gameData.gameName(), gameData.game());
+                }
+            }
+        }
+
+        gameDAO.updateGameData(gameData);
     }
 
     public void clear() {
