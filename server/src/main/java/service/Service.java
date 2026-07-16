@@ -68,7 +68,6 @@ public class Service {
     public void joinGame(String authToken, String colorString, int gameID) throws DataAccessException {
         AuthData authData = authDAO.getAuth(authToken);
         if (authData == null) {
-            System.out.println("Invalid Auth Token");
             throw new InvalidAuthTokenException();
         }
 
@@ -80,8 +79,7 @@ public class Service {
         TeamColor color;
         try {
             color = TeamColor.valueOf(colorString);
-        } catch (IllegalArgumentException e) {
-            System.out.println("You have reached this point");
+        } catch (Exception e) {
             throw new BadRequestException();
         }
 

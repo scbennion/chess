@@ -42,6 +42,9 @@ public class ChessHandler {
         String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
         HashMap<String, String> inputMap = new Gson().fromJson(ctx.body(), HashMap.class);
         String gameName = inputMap.get("gameName");
+        if (gameName == null) {
+            throw new BadRequestException();
+        }
         int gameID = service.createGame(authToken, gameName);
         ctx.json(new Gson().toJson(Map.of("gameID", gameID)));
     }
