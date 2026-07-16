@@ -7,6 +7,7 @@ import model.GameData;
 import model.UserData;
 import service.Service;
 
+import java.util.HashMap;
 import java.util.Map;
 
 public class ChessHandler {
@@ -37,7 +38,14 @@ public class ChessHandler {
         ctx.result(new Gson().toJson(games));
     }
 
-    public void processCreateGame(Context ctx) throws DataAccessException {}
+    public void processCreateGame(Context ctx) throws DataAccessException {
+        String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
+        HashMap<String, String> gameNameMap = new Gson().fromJson(ctx.body(), HashMap.class);
+        String gameName = gameNameMap.get("gameName");
+        int gameID = service.createGame(authToken, gameName);
+        ctx.json(new Gson().toJson(Map.of("gameID", gameID)));
+    }
+
     public void processJoinGame(Context ctx) throws DataAccessException {}
 
     public void processClear(Context ctx) throws DataAccessException {

@@ -4,7 +4,8 @@ import dataaccess.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
-import java.util.UUID;
+
+import javax.xml.crypto.Data;
 
 public class Service {
     private UserDAO userDAO;
@@ -52,6 +53,15 @@ public class Service {
         if (authData == null) {
             throw new InvalidAuthTokenException();
         } return gameDAO.listGames();
+    }
+
+    public int createGame(String authToken, String gameName) throws DataAccessException {
+        AuthData authData = authDAO.getAuth(authToken);
+        if (authData == null) {
+            throw new InvalidAuthTokenException();
+        }
+        GameData gameData = gameDAO.createGame(gameName);
+        return gameData.gameID();
     }
 
     public void clear() {
