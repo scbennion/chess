@@ -1,10 +1,9 @@
 package server;
+
+import com.google.gson.Gson;
 import dataaccess.*;
 import io.javalin.http.Context;
-import com.google.gson.Gson;
-import model.AuthData;
-import model.GameData;
-import model.UserData;
+import model.*;
 import service.Service;
 
 import java.util.HashMap;
@@ -15,7 +14,6 @@ public class ChessHandler {
 
     public void processRegister(Context ctx) throws DataAccessException {
         UserData inputs = new Gson().fromJson(ctx.body(), UserData.class);
-//        System.out.printf("deserialized inputs: %s\n", inputs);
         AuthData authData = service.register(inputs);
         ctx.result(new Gson().toJson(authData));
     }
@@ -50,7 +48,7 @@ public class ChessHandler {
     }
 
     public void processJoinGame(Context ctx) throws DataAccessException {
-       String authToken;
+        String authToken;
         try {
             authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
         } catch (Exception e) {
@@ -59,17 +57,17 @@ public class ChessHandler {
         HashMap<String, ?> inputMap = new Gson().fromJson(ctx.body(), HashMap.class);
         int gameID;
         if (inputMap.get("gameID") instanceof Double) {
-            gameID = ((Double)inputMap.get("gameID")).intValue();
-        } else if (inputMap.get("gameID") instanceof Integer){
-            gameID = (Integer)inputMap.get("gameID");
+            gameID = ((Double) inputMap.get("gameID")).intValue();
+        } else if (inputMap.get("gameID") instanceof Integer) {
+            gameID = (Integer) inputMap.get("gameID");
         } else {
             throw new InvalidGameIDException();
         }
-        service.joinGame(authToken, (String)inputMap.get("playerColor"), gameID);
+        service.joinGame(authToken, (String) inputMap.get("playerColor"), gameID);
         ctx.result(new Gson().toJson(Map.of()));
     }
 
-    public void processClear(Context ctx) throws DataAccessException {
+    public void processClear(Context ctx) {
         service.clear();
         ctx.json(new Gson().toJson(Map.of()));
     }
@@ -77,12 +75,12 @@ public class ChessHandler {
     public void exceptionHandler(Exception e, Context ctx) {
         ctx.json(new Gson().toJson(Map.of("message", String.format("Error: %s", e.getMessage()))));
         switch (e) {
-            case AlreadyTakenException alreadyTakenException -> ctx.status(403);
-            case BadRequestException badRequestException -> ctx.status(400);
-            case InvalidAuthTokenException invalidAuthTokenException -> ctx.status(401);
-            case InvalidGameIDException invalidGameIDException -> ctx.status(400);
-            case InvalidPasswordException invalidPasswordException -> ctx.status(401);
-            case InvalidUsernameException invalidUsernameException -> ctx.status(401);
+            case AlreadyTakenException ignored -> ctx.status(403);
+            case BadRequestException ignored -> ctx.status(400);
+            case InvalidAuthTokenException ignored -> ctx.status(401);
+            case InvalidGameIDException ignored -> ctx.status(400);
+            case InvalidPasswordException ignored -> ctx.status(401);
+            case InvalidUsernameException ignored -> ctx.status(401);
             default -> ctx.status(500);
         }
     }

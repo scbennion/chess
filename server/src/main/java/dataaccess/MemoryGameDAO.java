@@ -4,16 +4,15 @@ import chess.ChessGame;
 import model.GameData;
 
 import java.util.HashMap;
-import java.util.Random;
 
 public class MemoryGameDAO implements GameDAO {
-    private HashMap<Integer, GameData> database = new HashMap<>();
+    private final HashMap<Integer, GameData> database = new HashMap<>();
     private int gameID = 1;
 
     @Override
     public GameData createGame(String gameName) {
         int gameID = generateGameID();
-        GameData gameData = new GameData(gameID,null,null,gameName, new ChessGame());
+        GameData gameData = new GameData(gameID, null, null, gameName, new ChessGame());
         database.put(gameID, gameData);
         return gameData;
     }
