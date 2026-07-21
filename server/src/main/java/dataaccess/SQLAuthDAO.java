@@ -2,15 +2,18 @@ package dataaccess;
 
 import model.AuthData;
 
-import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.SQLException;
 
 
 public class SQLAuthDAO implements AuthDAO {
 
-    public SQLAuthDAO() throws DataAccessException {
-        configureDatabase();
+    public SQLAuthDAO() {
+        try {
+            configureDatabase();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -43,17 +46,33 @@ public class SQLAuthDAO implements AuthDAO {
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage(), ex);
         }
-        return new AuthData(authToken, username);
+        if (username != null) {
+            return new AuthData(authToken, username);
+        }
+        return null;
     }
 
     @Override
-    public void deleteAuth(String authToken) {
-
+    public void deleteAuth(String authToken) throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("DELETE FROM authTable WHERE authToken=?")) {
+                preparedStatement.setString(1, authToken);
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new DataAccessException(ex.getMessage(), ex);
+        }
     }
 
     @Override
-    public void clear() {
-
+    public void clear() throws DataAccessException {
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("TRUNCATE TABLE authTable")) {
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new DataAccessException(ex.getMessage(), ex);
+        }
     }
 
     private void updateDatabase(String[] statements) throws DataAccessException {

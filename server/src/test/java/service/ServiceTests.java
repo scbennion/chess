@@ -18,7 +18,7 @@ public class ServiceTests {
         }
         Assertions.assertNotNull(authData);
         Assertions.assertEquals("username", authData.username());
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 
     @Test
@@ -32,7 +32,7 @@ public class ServiceTests {
         Assertions.assertDoesNotThrow(() -> serviceTest.register(registerRequest));
         UserData logInRequest = new UserData(registerRequest.username(), registerRequest.password(), null);
         Assertions.assertDoesNotThrow(() -> serviceTest.login(logInRequest));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 
     @Test
@@ -47,13 +47,13 @@ public class ServiceTests {
         UserData logInRequest = new UserData(registerRequest.username(), registerRequest.password(), null);
         AuthData authData = Assertions.assertDoesNotThrow(() -> serviceTest.login(logInRequest));
         Assertions.assertDoesNotThrow(() -> serviceTest.logout(authData.authToken()));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 
     @Test
     public void logOutNegative() {
         Assertions.assertThrows(InvalidAuthTokenException.class, () -> serviceTest.logout("bad token"));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 
     @Test
@@ -62,7 +62,7 @@ public class ServiceTests {
         AuthData authData = Assertions.assertDoesNotThrow(() -> serviceTest.register(registerRequest));
         Assertions.assertDoesNotThrow(() -> serviceTest.createGame(authData.authToken(), "my game"));
         Assertions.assertDoesNotThrow(() -> serviceTest.listGames(authData.authToken()));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 
     @Test
@@ -75,9 +75,9 @@ public class ServiceTests {
     public void clearPositive() {
         UserData registerRequest = new UserData("usie", "pasie", "emie");
         Assertions.assertDoesNotThrow(() -> serviceTest.register(registerRequest));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
         Assertions.assertDoesNotThrow(() -> serviceTest.register(registerRequest));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 
     @Test
@@ -85,13 +85,13 @@ public class ServiceTests {
         UserData registerRequest = new UserData("testing", "incorrect", "hi@gmail.com");
         AuthData authData = Assertions.assertDoesNotThrow(() -> serviceTest.register(registerRequest));
         Assertions.assertDoesNotThrow(() -> serviceTest.createGame(authData.authToken(), "my game"));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 
     @Test
     public void createGameNegative() {
         Assertions.assertThrows(InvalidAuthTokenException.class, () -> serviceTest.createGame("bad token", "my game"));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 
     @Test
@@ -100,12 +100,12 @@ public class ServiceTests {
         AuthData authData = Assertions.assertDoesNotThrow(() -> serviceTest.register(registerRequest));
         int gameID = Assertions.assertDoesNotThrow(() -> serviceTest.createGame(authData.authToken(), "my game"));
         Assertions.assertDoesNotThrow(() -> serviceTest.joinGame(authData.authToken(), "WHITE", gameID));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 
     @Test
     public void joinGameNegative() {
         Assertions.assertThrows(InvalidAuthTokenException.class, () -> serviceTest.joinGame("bad token", "WHITE", 1));
-        serviceTest.clear();
+        Assertions.assertDoesNotThrow(serviceTest::clear);
     }
 }

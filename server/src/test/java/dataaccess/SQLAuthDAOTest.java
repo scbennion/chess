@@ -2,7 +2,6 @@ package dataaccess;
 
 import model.AuthData;
 import org.junit.jupiter.api.*;
-import passoff.server.DatabaseTests;
 import server.Server;
 
 import java.lang.reflect.Method;
@@ -16,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SQLAuthDAOTest {
     private static Server server;
     private static SQLAuthDAO sqlAuthDAO;
-    private static final String test_username = "jordan";
+    private static final String test_username = "john";
     private static Class<?> databaseManagerClass;
 
     @BeforeAll
@@ -31,33 +30,63 @@ class SQLAuthDAOTest {
         server.stop();
     }
 
-
     @Test
     void createAuthPositive() {
         int initialRowCount = getDatabaseRows();
-        AuthData testAuth = assertDoesNotThrow(this::createAuth);
+        AuthData testAuth = assertDoesNotThrow(() -> createAuth());
         assertEquals(test_username, testAuth.username());
         Assertions.assertTrue(initialRowCount < getDatabaseRows(), "No new data added to database");
     }
 
     @Test
+    void createAuthNegative() {
+        AuthData testAuth = assertDoesNotThrow(() -> createAuth("bad actor"));
+        assertNotEquals(test_username, testAuth.username());
+    }
+
+
+    @Test
     void getAuthPositive() {
-        AuthData testCreateAuth = assertDoesNotThrow(this::createAuth);
+        AuthData testCreateAuth = assertDoesNotThrow(() -> createAuth());
         AuthData testGetAuth = assertDoesNotThrow(() -> sqlAuthDAO.getAuth(testCreateAuth.authToken()));
         assertEquals(testCreateAuth, testGetAuth);
     }
 
+    @Test
+    void getAuthNegative() {
+        AuthData testCreateAuth = assertDoesNotThrow(() -> createAuth());
+        AuthData testGetAuth = assertDoesNotThrow(() -> sqlAuthDAO.getAuth(""));
+        assertNotEquals(testCreateAuth, testGetAuth);
+    }
 
     @Test
-    void deleteAuth() {
+    void deleteAuthPositive() {
+        AuthData testCreateAuth = assertDoesNotThrow(() -> createAuth());
+        int initialRowCount = getDatabaseRows();
+        assertDoesNotThrow(() -> sqlAuthDAO.deleteAuth(testCreateAuth.authToken()));
+        Assertions.assertTrue(initialRowCount > getDatabaseRows(), "No data deleted from database");
+    }
+
+    @Test
+    void deleteAuthNegative() {
+        int initialRowCount = getDatabaseRows();
+        assertDoesNotThrow(() -> sqlAuthDAO.deleteAuth(""));
+        Assertions.assertFalse(initialRowCount > getDatabaseRows(), "No data deleted from database");
     }
 
     @Test
     void clear() {
+        AuthData testCreateAuth = assertDoesNotThrow(() -> createAuth());
+        assertDoesNotThrow(() -> sqlAuthDAO.clear());
+        assertEquals(0, getDatabaseRows());
     }
 
     private AuthData createAuth() throws DataAccessException {
         return sqlAuthDAO.createAuth(test_username);
+    }
+
+    private AuthData createAuth(String username) throws DataAccessException {
+        return sqlAuthDAO.createAuth(username);
     }
 
     private int getDatabaseRows() {

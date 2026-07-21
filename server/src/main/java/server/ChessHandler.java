@@ -67,7 +67,7 @@ public class ChessHandler {
         ctx.result(new Gson().toJson(Map.of()));
     }
 
-    public void processClear(Context ctx) {
+    public void processClear(Context ctx) throws DataAccessException {
         service.clear();
         ctx.json(new Gson().toJson(Map.of()));
     }
