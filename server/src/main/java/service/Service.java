@@ -13,9 +13,13 @@ public class Service {
     private final GameDAO gameDAO;
 
     public Service() {
-        userDAO = new MemoryUserDAO();
-        authDAO = new MemoryAuthDAO();
-        gameDAO = new MemoryGameDAO();
+        try {
+            userDAO = new MemoryUserDAO();
+            authDAO = new SQLAuthDAO();
+            gameDAO = new MemoryGameDAO();
+        } catch (DataAccessException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public AuthData register(UserData registerRequest) throws DataAccessException {
