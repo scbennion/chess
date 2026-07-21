@@ -13,7 +13,7 @@ public class Service {
     private final GameDAO gameDAO;
 
     public Service() {
-        userDAO = new MemoryUserDAO();
+        userDAO = new SQLUserDAO();
         authDAO = new SQLAuthDAO();
         gameDAO = new MemoryGameDAO();
     }
@@ -38,7 +38,8 @@ public class Service {
         if (userData == null) {
             throw new InvalidUsernameException();
         }
-        if (!userData.password().equals(loginRequest.password())) {
+
+        if (!userDAO.passwordsMatch(userData.password(), loginRequest.password())) {
             throw new InvalidPasswordException();
         }
         return authDAO.createAuth(userData.username());
