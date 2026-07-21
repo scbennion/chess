@@ -2,6 +2,7 @@ package dataaccess;
 
 import model.AuthData;
 
+import javax.xml.crypto.Data;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -17,7 +18,7 @@ public class SQLAuthDAO implements AuthDAO {
         String authToken = generateToken();
         try (Connection conn = DatabaseManager.getConnection()) {
             try (var preparedStatement = conn.prepareStatement("INSERT INTO authTable (authToken, username) VALUES (?,?);")) {
-                preparedStatement.setString(1, generateToken());
+                preparedStatement.setString(1, authToken);
                 preparedStatement.setString(2, username);
                 preparedStatement.executeUpdate();
             }
@@ -28,8 +29,21 @@ public class SQLAuthDAO implements AuthDAO {
     }
 
     @Override
-    public AuthData getAuth(String authToken) {
-        return null;
+    public AuthData getAuth(String authToken) throws DataAccessException {
+        String username = null;
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("SELECT authToken, username FROM authTable WHERE authToken=?")) {
+                preparedStatement.setString(1, authToken);
+                try (var rs = preparedStatement.executeQuery()) {
+                    while (rs.next()) {
+                        username = rs.getString("username");
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw new DataAccessException(ex.getMessage(), ex);
+        }
+        return new AuthData(authToken, username);
     }
 
     @Override

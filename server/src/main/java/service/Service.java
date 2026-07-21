@@ -100,7 +100,7 @@ public class Service {
     }
 
     @NotNull
-    private AuthData getAuthData(String authToken) throws InvalidAuthTokenException {
+    private AuthData getAuthData(String authToken) throws DataAccessException {
         AuthData authData = authDAO.getAuth(authToken);
         if (authData == null) {
             throw new InvalidAuthTokenException();
