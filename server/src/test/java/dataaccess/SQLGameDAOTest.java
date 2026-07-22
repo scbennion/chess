@@ -85,8 +85,22 @@ class SQLGameDAOTest extends SQLDAOTest {
     }
 
     @Test
-    void updateGameData() {
+    void updateGameDataPositive() {
+        GameData gd = makeTestGame();
+        assertDoesNotThrow(() -> sqlGameDAO.updateGameData(new GameData(gd.gameID(), "magnus",
+                "hikaru", "blitz championships", gd.game())));
     }
+
+    @Test
+    void updateGameDataNegative() {
+        GameData gd = makeTestGame();
+        assertDoesNotThrow(() -> sqlGameDAO.updateGameData(new GameData(gd.gameID(), "magnus",
+                "hikaru", "blitz championships", gd.game())));
+        GameData updatedGameData = assertDoesNotThrow(() -> sqlGameDAO.getGame(gd.gameID()));
+        assertNotEquals(gd, updatedGameData);
+
+    }
+
 
     @Test
     void clear() {
