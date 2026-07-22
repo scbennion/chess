@@ -1,7 +1,5 @@
 package dataaccess;
 
-import chess.ChessGame;
-import model.AuthData;
 import model.GameData;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
@@ -13,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SQLGameDAOTest extends SQLDAOTest {
     private static Server server;
     private static SQLGameDAO sqlGameDAO;
-    private String gameName = "championship";
+    private final String GAME_NAME = "championship";
 
     @BeforeAll
     static void init() {
@@ -38,12 +36,12 @@ class SQLGameDAOTest extends SQLDAOTest {
 
     @Test
     void createGameNegative() {
-        GameData gameData = assertDoesNotThrow(() -> sqlGameDAO.createGame(gameName));
+        GameData gameData = assertDoesNotThrow(() -> sqlGameDAO.createGame(GAME_NAME));
         assertNotEquals("not my game", gameData.gameName());
     }
 
     private GameData makeTestGame() {
-        return assertDoesNotThrow(() -> sqlGameDAO.createGame(gameName));
+        return assertDoesNotThrow(() -> sqlGameDAO.createGame(GAME_NAME));
     }
 
     private GameData makeTestGame(String name) {

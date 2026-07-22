@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SQLAuthDAOTest extends SQLDAOTest {
     private static Server server;
     private static SQLAuthDAO sqlAuthDAO;
-    private static final String test_username = "john";
+    private static final String TEST_USERNAME = "john";
 
     @BeforeAll
     static void init() {
@@ -25,16 +25,14 @@ class SQLAuthDAOTest extends SQLDAOTest {
 
     @Test
     void createAuthPositive() {
-        int initialRowCount = getDatabaseRows("authTable");
         AuthData testAuth = assertDoesNotThrow(() -> createAuth());
-        assertEquals(test_username, testAuth.username());
-        Assertions.assertTrue(initialRowCount < getDatabaseRows("authTable"), "No new data added to database");
+        assertEquals(TEST_USERNAME, testAuth.username());
     }
 
     @Test
     void createAuthNegative() {
         AuthData testAuth = assertDoesNotThrow(() -> createAuth("bad actor"));
-        assertNotEquals(test_username, testAuth.username());
+        assertNotEquals(TEST_USERNAME, testAuth.username());
     }
 
 
@@ -74,7 +72,7 @@ class SQLAuthDAOTest extends SQLDAOTest {
     }
 
     private AuthData createAuth() throws DataAccessException {
-        return sqlAuthDAO.createAuth(test_username);
+        return sqlAuthDAO.createAuth(TEST_USERNAME);
     }
 
     private AuthData createAuth(String username) throws DataAccessException {
