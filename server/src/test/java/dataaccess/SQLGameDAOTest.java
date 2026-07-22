@@ -46,6 +46,11 @@ class SQLGameDAOTest extends SQLDAOTest {
         return assertDoesNotThrow(() -> sqlGameDAO.createGame(gameName));
     }
 
+    private GameData makeTestGame(String name) {
+        return assertDoesNotThrow(() -> sqlGameDAO.createGame(name));
+    }
+
+
     @Test
     void getGamePositive() {
         GameData createdGame = makeTestGame();
@@ -56,14 +61,29 @@ class SQLGameDAOTest extends SQLDAOTest {
 
     @Test
     void getGameNegative() {
-        GameData testCreateAuth = assertDoesNotThrow(this::makeTestGame);
+        GameData testCreateAuth = assertDoesNotThrow(() -> makeTestGame());
         GameData testGetAuth = assertDoesNotThrow(() -> sqlGameDAO.getGame(0));
         assertNotEquals(testCreateAuth, testGetAuth);
     }
 
 
     @Test
-    void listGames() {
+    void listGamesPositive() {
+        assertDoesNotThrow(() -> sqlGameDAO.clear());
+        makeTestGame();
+        makeTestGame("rematch");
+        makeTestGame("comeback");
+        GameData[] games = assertDoesNotThrow(() -> sqlGameDAO.listGames());
+        assertEquals(3, games.length);
+    }
+
+    @Test
+    void listGamesNegative() {
+        assertDoesNotThrow(() -> sqlGameDAO.clear());
+        makeTestGame();
+        makeTestGame("final");
+        GameData[] games = assertDoesNotThrow(() -> sqlGameDAO.listGames());
+        assertNotEquals(games[0].gameID(), games[1].gameID());
     }
 
     @Test

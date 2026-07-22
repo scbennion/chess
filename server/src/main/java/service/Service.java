@@ -15,7 +15,7 @@ public class Service {
     public Service() {
         userDAO = new SQLUserDAO();
         authDAO = new SQLAuthDAO();
-        gameDAO = new MemoryGameDAO();
+        gameDAO = new SQLGameDAO();
     }
 
     public AuthData register(UserData registerRequest) throws DataAccessException {

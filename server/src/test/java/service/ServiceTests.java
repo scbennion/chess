@@ -58,6 +58,7 @@ public class ServiceTests {
 
     @Test
     public void listPositive() {
+        Assertions.assertDoesNotThrow(serviceTest::clear);
         UserData registerRequest = new UserData("tester", "incorrect", "hi@gmail.com");
         AuthData authData = Assertions.assertDoesNotThrow(() -> serviceTest.register(registerRequest));
         Assertions.assertDoesNotThrow(() -> serviceTest.createGame(authData.authToken(), "my game"));

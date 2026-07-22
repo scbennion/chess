@@ -9,13 +9,14 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.Map;
 
 import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 public class SQLGameDAO implements GameDAO {
 
-    private Gson serializer = new Gson();
+    private final Gson serializer = new Gson();
 
     public SQLGameDAO() {
         try {
@@ -39,7 +40,6 @@ public class SQLGameDAO implements GameDAO {
                 if (rs.next()) {
                     gameID = rs.getInt(1);
                 }
-
             }
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage(), ex);
@@ -75,12 +75,43 @@ public class SQLGameDAO implements GameDAO {
 
     @Override
     public GameData[] listGames() throws DataAccessException {
-        return new GameData[0];
+        ArrayList<GameData> games = new ArrayList<>();
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("SELECT gameID, whiteUsername, blackUsername, " +
+                    "gameName, serializedChessGame FROM gameTable")) {
+                try (var rs = preparedStatement.executeQuery()) {
+                    while (rs.next()) {
+                        String whiteUsername = rs.getString("whiteUsername");
+                        String blackUsername = rs.getString("blackUsername");
+                        int gameID = rs.getInt("gameID");
+                        String gameName = rs.getString("gameName");
+                        String gameSerialized = rs.getString("serializedChessGame");
+                        ChessGame chessGame = serializer.fromJson(Map.of("game", gameSerialized).toString(), ChessGame.class);
+                        games.add(new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame));
+                    }
+                }
+            }
+        } catch (SQLException ex) {
+            throw new DataAccessException(ex.getMessage(), ex);
+        }
+        return games.toArray(GameData[]::new);
     }
 
     @Override
     public void updateGameData(GameData gameData) throws DataAccessException {
-
+        try (Connection conn = DatabaseManager.getConnection()) {
+            try (var preparedStatement = conn.prepareStatement("UPDATE gameTable SET whiteUsername = ?, " +
+                    "blackUsername = ?, gameName = ?, serializedChessGame = ? WHERE gameID=?")) {
+                preparedStatement.setString(1, gameData.whiteUsername());
+                preparedStatement.setString(2, gameData.blackUsername());
+                preparedStatement.setString(3, gameData.gameName());
+                preparedStatement.setString(4, serializer.toJson(gameData.game()));
+                preparedStatement.setInt(5, gameData.gameID());
+                preparedStatement.executeUpdate();
+            }
+        } catch (SQLException ex) {
+            throw new DataAccessException(ex.getMessage(), ex);
+        }
     }
 
     @Override
