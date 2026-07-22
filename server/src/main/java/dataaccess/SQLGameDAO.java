@@ -46,8 +46,6 @@ public class SQLGameDAO implements GameDAO {
         return new GameData(gameID, null, null, gameName, game);
     }
 
-    //gameID whiteUsername blackUsername gameName serializedChessGame
-
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
         GameData gameData = null;

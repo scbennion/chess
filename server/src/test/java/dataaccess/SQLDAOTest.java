@@ -47,6 +47,7 @@ public class SQLDAOTest {
     }
 
     private Connection getConnection() throws ReflectiveOperationException {
+        String avoidDuplicates = "";
         Class<?> aClass = findDatabaseManager();
         Method getConnectionMethod = aClass.getDeclaredMethod("getConnection");
         getConnectionMethod.setAccessible(true);

@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class SQLGameDAOTest extends SQLDAOTest {
     private static Server server;
     private static SQLGameDAO sqlGameDAO;
-    private final String GAME_NAME = "championship";
+    private String gameName = "championship";
 
     @BeforeAll
     static void init() {
@@ -36,12 +36,12 @@ class SQLGameDAOTest extends SQLDAOTest {
 
     @Test
     void createGameNegative() {
-        GameData gameData = assertDoesNotThrow(() -> sqlGameDAO.createGame(GAME_NAME));
+        GameData gameData = assertDoesNotThrow(() -> sqlGameDAO.createGame(gameName));
         assertNotEquals("not my game", gameData.gameName());
     }
 
     private GameData makeTestGame() {
-        return assertDoesNotThrow(() -> sqlGameDAO.createGame(GAME_NAME));
+        return assertDoesNotThrow(() -> sqlGameDAO.createGame(gameName));
     }
 
     private GameData makeTestGame(String name) {
