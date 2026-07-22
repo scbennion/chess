@@ -1,7 +1,7 @@
 package server;
 
 import com.google.gson.Gson;
-import dataaccess.*;
+import dataaccess.exceptions.*;
 import io.javalin.http.Context;
 import model.*;
 import service.Service;

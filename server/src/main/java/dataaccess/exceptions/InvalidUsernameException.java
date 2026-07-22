@@ -1,4 +1,4 @@
-package dataaccess;
+package dataaccess.exceptions;
 
 public class InvalidUsernameException extends DataAccessException {
     public InvalidUsernameException() {

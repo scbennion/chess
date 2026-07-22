@@ -2,6 +2,7 @@ package service;
 
 import chess.ChessGame.TeamColor;
 import dataaccess.*;
+import dataaccess.exceptions.*;
 import model.AuthData;
 import model.GameData;
 import model.UserData;

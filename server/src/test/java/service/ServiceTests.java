@@ -1,6 +1,9 @@
 package service;
 
-import dataaccess.*;
+import dataaccess.exceptions.BadRequestException;
+import dataaccess.exceptions.DataAccessException;
+import dataaccess.exceptions.InvalidAuthTokenException;
+import dataaccess.exceptions.InvalidUsernameException;
 import model.*;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
