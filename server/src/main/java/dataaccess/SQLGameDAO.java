@@ -7,7 +7,11 @@ import model.UserData;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Map;
+
+import static java.sql.Statement.RETURN_GENERATED_KEYS;
 
 public class SQLGameDAO implements GameDAO {
 
@@ -23,16 +27,24 @@ public class SQLGameDAO implements GameDAO {
 
     @Override
     public GameData createGame(String gameName) throws DataAccessException {
+        ChessGame game = new ChessGame();
+        int gameID = -1;
         try (Connection conn = DatabaseManager.getConnection()) {
-            try (var preparedStatement = conn.prepareStatement("INSERT INTO gameTable (gameName, serializedChessGame) VALUES (?,?);")) {
+            String statement = "INSERT INTO gameTable (gameName, serializedChessGame) VALUES (?,?);";
+            try (var preparedStatement = conn.prepareStatement(statement, RETURN_GENERATED_KEYS)) {
                 preparedStatement.setString(1, gameName);
-                preparedStatement.setString(2, serializer.toJson(new ChessGame()));
+                preparedStatement.setString(2, serializer.toJson(game));
                 preparedStatement.executeUpdate();
+                ResultSet rs = preparedStatement.getGeneratedKeys();
+                if (rs.next()) {
+                    gameID = rs.getInt(1);
+                }
+
             }
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage(), ex);
         }
-        return null;
+        return new GameData(gameID, null, null, gameName, game);
     }
 
     //gameID whiteUsername blackUsername gameName serializedChessGame
@@ -41,16 +53,16 @@ public class SQLGameDAO implements GameDAO {
     public GameData getGame(int gameID) throws DataAccessException {
         GameData gameData = null;
         try (Connection conn = DatabaseManager.getConnection()) {
-            //preparedStatement.getGeneratedKeys()
             try (var preparedStatement = conn.prepareStatement("SELECT whiteUsername, blackUsername, " +
                     "gameName, serializedChessGame FROM gameTable WHERE gameID=?")) {
-                preparedStatement.setString(1, Integer.toString(gameID));
+                preparedStatement.setInt(1, gameID);
                 try (var rs = preparedStatement.executeQuery()) {
                     while (rs.next()) {
                         String whiteUsername = rs.getString("whiteUsername");
                         String blackUsername = rs.getString("blackUsername");
                         String gameName = rs.getString("gameName");
-                        ChessGame chessGame = serializer.fromJson(rs.getString("serializedChessGame"), ChessGame.class);
+                        String gameSerialized = rs.getString("serializedChessGame");
+                        ChessGame chessGame = serializer.fromJson(Map.of("game", gameSerialized).toString(), ChessGame.class);
                         gameData = new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame);
                     }
                 }
@@ -87,11 +99,11 @@ public class SQLGameDAO implements GameDAO {
         String[] createStatements = {
                 """
             CREATE TABLE IF NOT EXISTS  gameTable (
-              'gameID' INT NOT NULL AUTO_INCREMENT,
+              `gameID` INT NOT NULL AUTO_INCREMENT,
               `whiteUsername` varchar(256),
               `blackUsername` varchar(256),
               `gameName` varchar(256) NOT NULL,
-              `serializedChessGame` varchar(256) NOT NULL,
+              `serializedChessGame` TEXT NOT NULL,
               PRIMARY KEY (`gameID`)
             );
             """

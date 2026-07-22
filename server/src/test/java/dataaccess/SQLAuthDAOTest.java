@@ -4,19 +4,12 @@ import model.AuthData;
 import org.junit.jupiter.api.*;
 import server.Server;
 
-import java.lang.reflect.Method;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.SQLException;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import static org.junit.jupiter.api.Assertions.*;
 
 class SQLAuthDAOTest extends SQLDAOTest {
     private static Server server;
     private static SQLAuthDAO sqlAuthDAO;
     private static final String test_username = "john";
-    private static Class<?> databaseManagerClass;
 
     @BeforeAll
     static void init() {
@@ -32,10 +25,10 @@ class SQLAuthDAOTest extends SQLDAOTest {
 
     @Test
     void createAuthPositive() {
-        int initialRowCount = getDatabaseRows();
+        int initialRowCount = getDatabaseRows("authTable");
         AuthData testAuth = assertDoesNotThrow(() -> createAuth());
         assertEquals(test_username, testAuth.username());
-        Assertions.assertTrue(initialRowCount < getDatabaseRows(), "No new data added to database");
+        Assertions.assertTrue(initialRowCount < getDatabaseRows("authTable"), "No new data added to database");
     }
 
     @Test
@@ -62,22 +55,22 @@ class SQLAuthDAOTest extends SQLDAOTest {
     @Test
     void deleteAuthPositive() {
         AuthData testCreateAuth = assertDoesNotThrow(() -> createAuth());
-        int initialRowCount = getDatabaseRows();
+        int initialRowCount = getDatabaseRows("authTable");
         assertDoesNotThrow(() -> sqlAuthDAO.deleteAuth(testCreateAuth.authToken()));
-        Assertions.assertTrue(initialRowCount > getDatabaseRows(), "No data deleted from database");
+        Assertions.assertTrue(initialRowCount > getDatabaseRows("authTable"), "No data deleted from database");
     }
 
     @Test
     void deleteAuthNegative() {
-        int initialRowCount = getDatabaseRows();
+        int initialRowCount = getDatabaseRows("authTable");
         assertDoesNotThrow(() -> sqlAuthDAO.deleteAuth(""));
-        Assertions.assertFalse(initialRowCount > getDatabaseRows(), "No data deleted from database");
+        Assertions.assertFalse(initialRowCount > getDatabaseRows("authTable"), "No data deleted from database");
     }
 
     @Test
     void clear() {
         assertDoesNotThrow(() -> sqlAuthDAO.clear());
-        assertEquals(0, getDatabaseRows());
+        assertEquals(0, getDatabaseRows("authTable"));
     }
 
     private AuthData createAuth() throws DataAccessException {

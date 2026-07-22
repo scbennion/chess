@@ -17,9 +17,9 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SQLDAOTest {
     private static Class<?> databaseManagerClass;
 
-    protected int getDatabaseRows() {
+    protected int getDatabaseRows(String databaseName) {
         AtomicInteger rows = new AtomicInteger();
-        executeForAllTables((tableName, connection) -> {
+        executeForTable(databaseName, (tableName, connection) -> {
             try (var statement = connection.createStatement()) {
                 var sql = "SELECT count(*) FROM " + tableName;
                 try (var resultSet = statement.executeQuery(sql)) {
@@ -32,7 +32,7 @@ public class SQLDAOTest {
         return rows.get();
     }
 
-    private void executeForAllTables(SQLDAOTest.TableAction tableAction) {
+    private void executeForTable(String databaseName, SQLDAOTest.TableAction tableAction) {
         String sql = """
                     SELECT table_name
                     FROM information_schema.tables
@@ -41,9 +41,7 @@ public class SQLDAOTest {
 
         try (Connection conn = getConnection(); PreparedStatement preparedStatement = conn.prepareStatement(sql)) {
             try (var resultSet = preparedStatement.executeQuery()) {
-                while (resultSet.next()) {
-                    tableAction.execute(resultSet.getString(1), conn);
-                }
+                tableAction.execute(databaseName, conn);
             }
         } catch (ReflectiveOperationException | SQLException e) {
             Assertions.fail(e.getMessage(), e);

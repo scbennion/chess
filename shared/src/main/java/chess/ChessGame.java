@@ -11,8 +11,8 @@ import java.util.*;
 public class ChessGame {
     private ChessBoard board;
     private TeamColor turn;
-    private final Set<ChessMove> previousEnPassantOpportunities;
-    private final Set<ChessMove> enPassantOpportunities;
+    private final HashSet<ChessMove> previousEnPassantOpportunities;
+    private final HashSet<ChessMove> enPassantOpportunities;
 
 
     public ChessGame() {
