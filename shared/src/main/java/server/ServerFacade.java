@@ -3,18 +3,29 @@ package server;
 import com.google.gson.Gson;
 
 import dataaccess.exceptions.DataAccessException;
+import model.AuthData;
+import model.UserData;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.Map;
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
 
-    public ServerFacade(String url) {
-        serverUrl = url;
+    public ServerFacade(int port) {
+        serverUrl = "http://localhost:" + port;
+    }
+
+    public AuthData register(UserData registerRequest) throws DataAccessException {
+        Map<String, String> requestBody = Map.of("username", registerRequest.username(),
+                "password", registerRequest.password(), "email", registerRequest.email());
+        HttpRequest request = buildRequest("POST", "/user", requestBody);
+        var response = sendRequest(request);
+        return handleResponse(response, AuthData.class);
     }
 
     //Private methods modified from PetShop
@@ -51,7 +62,6 @@ public class ServerFacade {
             if (body != null) {
                 throw new DataAccessException(response.body());
             }
-
             throw new DataAccessException("other failure: " + status);
         }
 
@@ -61,13 +71,4 @@ public class ServerFacade {
 
         return null;
     }
-
-
-//    public Pet addPet(Pet pet) throws ResponseException {
-//        var request = buildRequest("POST", "/pet", pet);
-//        var response = sendRequest(request);
-//        return handleResponse(response, Pet.class);
-//    }
-
-
 }
