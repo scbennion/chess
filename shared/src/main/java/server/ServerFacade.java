@@ -28,6 +28,11 @@ public class ServerFacade {
         return handleResponse(response, AuthData.class);
     }
 
+    public void clear() throws DataAccessException {
+        HttpRequest request = buildRequest("DELETE", "/db", null);
+        sendRequest(request);
+    }
+
     //Private methods modified from PetShop
     private HttpRequest buildRequest(String method, String path, Object body) {
         var request = HttpRequest.newBuilder()

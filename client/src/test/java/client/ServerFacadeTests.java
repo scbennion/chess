@@ -1,11 +1,12 @@
 package client;
 
+import dataaccess.exceptions.DataAccessException;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerFacadeTests {
 
@@ -25,21 +26,22 @@ public class ServerFacadeTests {
         server.stop();
     }
 
-//    @BeforeEach
-//    void clearDatabase() {
-//        serverFacade.clear();
-//    }
+    @BeforeEach
+    @Test
+    void clearDatabase() {
+        assertDoesNotThrow(() -> serverFacade.clear());
+    }
 
     @Test
-    void register() throws Exception {
+    void registerPositive() throws DataAccessException {
         var authData = serverFacade.register(new UserData("natalie", "p", "me@email.com"));
         assertTrue(authData.authToken().length() > 10);
     }
 
-
     @Test
-    public void sampleTest() {
-        assertTrue(true);
+    void registerNegative() throws Exception {
+        UserData duplicate = new UserData("duplicator", "p", "me@email.com");
+        var authData = serverFacade.register(duplicate);
+        assertThrows(DataAccessException.class, () -> serverFacade.register(duplicate));
     }
-
 }
