@@ -58,8 +58,7 @@ public class SQLGameDAO implements GameDAO {
                         String whiteUsername = rs.getString("whiteUsername");
                         String blackUsername = rs.getString("blackUsername");
                         String gameName = rs.getString("gameName");
-                        String gameSerialized = rs.getString("serializedChessGame");
-                        ChessGame chessGame = serializer.fromJson(Map.of("game", gameSerialized).toString(), ChessGame.class);
+                        ChessGame chessGame = deserializeChessGame(rs.getString("serializedChessGame"));
                         gameData = new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame);
                     }
                 }
@@ -82,8 +81,7 @@ public class SQLGameDAO implements GameDAO {
                         String blackUsername = rs.getString("blackUsername");
                         int gameID = rs.getInt("gameID");
                         String gameName = rs.getString("gameName");
-                        String gameSerialized = rs.getString("serializedChessGame");
-                        ChessGame chessGame = serializer.fromJson(Map.of("game", gameSerialized).toString(), ChessGame.class);
+                        ChessGame chessGame = deserializeChessGame(rs.getString("serializedChessGame"));
                         games.add(new GameData(gameID, whiteUsername, blackUsername, gameName, chessGame));
                     }
                 }
@@ -120,6 +118,12 @@ public class SQLGameDAO implements GameDAO {
         } catch (SQLException ex) {
             throw new DataAccessException(ex.getMessage(), ex);
         }
+    }
+
+    private ChessGame deserializeChessGame(String gameSerialized) {
+        ChessGame game = serializer.fromJson(Map.of("game", gameSerialized).toString(), ChessGame.class);
+        game.getBoard().buildPieceCaches();
+        return game;
     }
 
     private void configureDatabase() throws DataAccessException {

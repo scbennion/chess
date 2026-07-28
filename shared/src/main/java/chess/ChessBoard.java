@@ -15,8 +15,8 @@ public class ChessBoard {
     ChessPiece[][] squares;
     final int size = 8;
     private HashMap<ChessGame.TeamColor, ChessPosition> kingPos;
-    private HashMap<ChessPosition, ChessPiece> whitePieces;
-    private HashMap<ChessPosition, ChessPiece> blackPieces;
+    private transient HashMap<ChessPosition, ChessPiece> whitePieces;
+    private transient HashMap<ChessPosition, ChessPiece> blackPieces;
 
     public ChessBoard() {
         setFields();
@@ -27,13 +27,13 @@ public class ChessBoard {
         //The positions and pieces don't need to be copied as all fields are final
         //By copying the maps and board, you can then move pieces around
         // in your new board with no unintended consequences
-        for (ChessPosition p: copyBoard.whitePieces.keySet()) {
+        for (ChessPosition p : copyBoard.whitePieces.keySet()) {
             whitePieces.put(p, copyBoard.whitePieces.get(p));
         }
-        for (ChessPosition p: copyBoard.blackPieces.keySet()) {
+        for (ChessPosition p : copyBoard.blackPieces.keySet()) {
             blackPieces.put(p, copyBoard.blackPieces.get(p));
         }
-        for  (ChessGame.TeamColor c: copyBoard.kingPos.keySet()) {
+        for (ChessGame.TeamColor c : copyBoard.kingPos.keySet()) {
             kingPos.put(c, copyBoard.kingPos.get(c));
         }
         for (int row = 0; row < size; row++) {
@@ -48,6 +48,24 @@ public class ChessBoard {
 
     }
 
+    public void buildPieceCaches() {
+        whitePieces = new HashMap<>();
+        blackPieces = new HashMap<>();
+        for (int row = 1; row <= 8; row++) {
+            for (int col = 1; col <= 8; col++) {
+                ChessPosition pos = new ChessPosition(row, col);
+                ChessPiece piece = getPiece(pos);
+                if (piece != null) {
+                    if (piece.getTeamColor() == ChessGame.TeamColor.WHITE) {
+                        whitePieces.put(pos, piece);
+                    } else {
+                        blackPieces.put(pos, piece);
+                    }
+                }
+            }
+        }
+    }
+
     private void setFields() {
         squares = new ChessPiece[size][size];
         kingPos = new HashMap<>();
@@ -55,7 +73,7 @@ public class ChessBoard {
         blackPieces = new HashMap<>();
     }
 
-    private void updatePieceLocations (ChessPiece p, ChessPosition startPos, ChessPosition endPos, ChessGame.TeamColor c) {
+    private void updatePieceLocations(ChessPiece p, ChessPosition startPos, ChessPosition endPos, ChessGame.TeamColor c) {
         //check for updated king position
         if (p.getPieceType() == ChessPiece.PieceType.KING) {
             kingPos.put(c, endPos);
@@ -69,13 +87,14 @@ public class ChessBoard {
             case WHITE -> {
                 whitePieces.remove(startPos);
                 whitePieces.put(endPos, p);
-                if (squares[endPos.getRow()-1][endPos.getColumn()-1] != null) {
+                if (squares[endPos.getRow() - 1][endPos.getColumn() - 1] != null) {
                     blackPieces.remove(endPos);
                 }
-            } case BLACK -> {
+            }
+            case BLACK -> {
                 blackPieces.remove(startPos);
                 blackPieces.put(endPos, p);
-                if (squares[endPos.getRow()-1][endPos.getColumn()-1] != null) {
+                if (squares[endPos.getRow() - 1][endPos.getColumn() - 1] != null) {
                     whitePieces.remove(endPos);
                 }
             }
@@ -84,18 +103,18 @@ public class ChessBoard {
     }
 
     public void removePiece(ChessPosition pos) {
-        switch (squares[pos.getRow()-1][pos.getColumn()-1].getTeamColor()) {
+        switch (squares[pos.getRow() - 1][pos.getColumn() - 1].getTeamColor()) {
             case WHITE -> whitePieces.remove(pos);
             case BLACK -> blackPieces.remove(pos);
-            }
-        squares[pos.getRow()-1][pos.getColumn()-1] = null;
+        }
+        squares[pos.getRow() - 1][pos.getColumn() - 1] = null;
     }
 
 
     public void movePiece(ChessMove m) {
         ChessPosition startPos = m.getStartPosition();
         ChessPosition endPos = m.getEndPosition();
-        ChessPiece p = squares[m.getStartPosition().getRow()-1][m.getStartPosition().getColumn()-1];
+        ChessPiece p = squares[m.getStartPosition().getRow() - 1][m.getStartPosition().getColumn() - 1];
         ChessGame.TeamColor c = p.getTeamColor();
 
         //account for promotion
@@ -106,18 +125,19 @@ public class ChessBoard {
         updatePieceLocations(p, startPos, endPos, c);
 
         //move piece
-        squares[startPos.getRow()-1][startPos.getColumn()-1] = null;
-        squares[endPos.getRow()-1][endPos.getColumn()-1] = p;
+        squares[startPos.getRow() - 1][startPos.getColumn() - 1] = null;
+        squares[endPos.getRow() - 1][endPos.getColumn() - 1] = p;
 
     }
 
     /**
      * Adds a chess piece to the chessboard
+     *
      * @param position where to add the piece to
      * @param piece    the piece to add
      */
-    public void addPiece(ChessPosition position, ChessPiece piece)  {
-        squares[position.getRow()-1][position.getColumn()-1] = piece;
+    public void addPiece(ChessPosition position, ChessPiece piece) {
+        squares[position.getRow() - 1][position.getColumn() - 1] = piece;
 
         if (piece != null) {
             ChessGame.TeamColor color = piece.getTeamColor();
@@ -141,11 +161,11 @@ public class ChessBoard {
      * position
      */
     public ChessPiece getPiece(ChessPosition position) {
-        return squares[position.getRow()-1][position.getColumn()-1];
+        return squares[position.getRow() - 1][position.getColumn() - 1];
     }
 
     public HashMap<ChessPosition, ChessPiece> getSidePieces(ChessGame.TeamColor color) {
-        return switch(color) {
+        return switch (color) {
             case WHITE -> whitePieces;
             case BLACK -> blackPieces;
         };
@@ -168,7 +188,7 @@ public class ChessBoard {
     }
 
     /**
-    Makes the back row
+     * Makes the back row
      */
     private void makeBackRow(int row, ChessGame.TeamColor color) {
 
@@ -184,7 +204,7 @@ public class ChessBoard {
         setKingPos(color, new ChessPosition(row, 5));
     }
 
-    private void setKingPos (ChessGame.TeamColor color, ChessPosition pos) {
+    private void setKingPos(ChessGame.TeamColor color, ChessPosition pos) {
         kingPos.put(color, pos);
     }
 

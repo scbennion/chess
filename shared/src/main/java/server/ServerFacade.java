@@ -7,6 +7,7 @@ import dataaccess.exceptions.DataAccessException;
 import dataaccess.exceptions.InvalidGameIDException;
 import model.AuthData;
 import model.GameData;
+import model.ListGamesResponse;
 import model.UserData;
 
 import java.io.Reader;
@@ -51,27 +52,14 @@ public class ServerFacade {
     public GameData[] listGames(String authToken) throws DataAccessException {
         HttpRequest request = buildRequestWithAuthToken("GET", "/game", null, authToken);
         var response = sendRequest(request);
-        var gameMap = handleResponse(response, Map.class);
+        System.out.println("Response class: " + response.body().getClass());
+        System.out.println("Response body: " + response.body());
+        var gameMap = handleResponse(response, ListGamesResponse.class);
         assert gameMap != null;
-        if (gameMap.isEmpty()) {
-            return new GameData[]{};
-        } else {
-            ArrayList<Map<String, ?>> games = (ArrayList<Map<String, ?>>) gameMap.get("games");
-            return convertToGameDataList(games);
+        for (GameData gameData : gameMap.games()) {
+            gameData.game().getBoard().buildPieceCaches();
         }
-    }
-
-    private GameData[] convertToGameDataList(ArrayList<Map<String, ?>> games) {
-        var gameDataList = new GameData[games.size()];
-        int count = 0;
-        for (Map<?, ?> game : games) {
-            var gameState = new Gson().fromJson((String) game.get("game"), Map.class);
-            return null;
-//            gameDataList[count++] = new Gson().fromJson(game.toString(), Map.class);
-//            ChessGame chessGameObject = new Gson().fromJson((String) game.get("game"), ChessGame.class);
-//            gameDataList[count++] = new GameData(((Double) game.get("gameID")).intValue(), (String) game.get("whiteUsername"), (String) game.get("blackUsername"), (String) game.get("gameName"), chessGameObject);
-        }
-        return gameDataList;
+        return gameMap.games();
     }
 
     public int createGame(String authToken, String gameName) throws DataAccessException {
