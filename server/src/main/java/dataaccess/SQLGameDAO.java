@@ -121,7 +121,7 @@ public class SQLGameDAO implements GameDAO {
     }
 
     private ChessGame deserializeChessGame(String gameSerialized) {
-        ChessGame game = serializer.fromJson(Map.of("game", gameSerialized).toString(), ChessGame.class);
+        ChessGame game = serializer.fromJson(gameSerialized, ChessGame.class);
         game.getBoard().buildPieceCaches();
         return game;
     }

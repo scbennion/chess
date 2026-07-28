@@ -52,8 +52,6 @@ public class ServerFacade {
     public GameData[] listGames(String authToken) throws DataAccessException {
         HttpRequest request = buildRequestWithAuthToken("GET", "/game", null, authToken);
         var response = sendRequest(request);
-        System.out.println("Response class: " + response.body().getClass());
-        System.out.println("Response body: " + response.body());
         var gameMap = handleResponse(response, ListGamesResponse.class);
         assert gameMap != null;
         for (GameData gameData : gameMap.games()) {
