@@ -1,6 +1,7 @@
 package client;
 
 import dataaccess.exceptions.DataAccessException;
+import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
@@ -12,6 +13,8 @@ public class ServerFacadeTests {
 
     private static Server server;
     private static ServerFacade serverFacade;
+    private final UserData TEST_USER = new UserData("popcorn", "pop", "pop@gmail.com");
+    private final String TEST_GAME_NAME = "Rookie Game";
 
     @BeforeAll
     public static void init() {
@@ -34,7 +37,7 @@ public class ServerFacadeTests {
 
     @Test
     void registerPositive() throws DataAccessException {
-        var authData = serverFacade.register(new UserData("natalie", "p", "me@email.com"));
+        var authData = serverFacade.register(TEST_USER);
         assertTrue(authData.authToken().length() > 10);
     }
 
@@ -44,4 +47,67 @@ public class ServerFacadeTests {
         var authData = serverFacade.register(duplicate);
         assertThrows(DataAccessException.class, () -> serverFacade.register(duplicate));
     }
+
+    @Test
+    void loginPositive() {
+        assertDoesNotThrow(() -> serverFacade.register(TEST_USER));
+        var loginRequest = new UserData(TEST_USER.username(), TEST_USER.password(), null);
+        var authData = assertDoesNotThrow(() -> serverFacade.login(loginRequest));
+        assertTrue(authData.authToken().length() > 10);
+    }
+
+    @Test
+    void loginNegative() {
+        assertThrows(DataAccessException.class, () -> serverFacade.login(TEST_USER));
+    }
+
+    @Test
+    void logoutPositive() {
+        var authData = assertDoesNotThrow(() -> serverFacade.register(TEST_USER));
+        assertDoesNotThrow(() -> serverFacade.logout(authData.authToken()));
+        var loginRequest = new UserData(TEST_USER.username(), TEST_USER.password(), null);
+        assertDoesNotThrow(() -> serverFacade.login(loginRequest));
+    }
+
+    @Test
+    void logoutNegative() {
+        assertThrows(DataAccessException.class, () -> serverFacade.logout("fake token"));
+    }
+
+    @Test
+    void createPositive() {
+        var authData = assertDoesNotThrow(() -> serverFacade.register(TEST_USER));
+        int gameID = assertDoesNotThrow(() -> serverFacade.createGame(authData.authToken(), TEST_GAME_NAME));
+        assertTrue(gameID > 0);
+    }
+
+    @Test
+    void createNegative() {
+        assertThrows(DataAccessException.class, () -> serverFacade.createGame("BAD TOKEN", TEST_GAME_NAME));
+    }
+
+    @Test
+    void listPositive() {
+        var authData = assertDoesNotThrow(() -> serverFacade.register(TEST_USER));
+        int gameID1 = assertDoesNotThrow(() -> serverFacade.createGame(authData.authToken(), "titled tuesday"));
+        int gameID2 = assertDoesNotThrow(() -> serverFacade.createGame(authData.authToken(), "bobby fischer"));
+        GameData[] games = assertDoesNotThrow(() -> serverFacade.listGames(authData.authToken()));
+        assert (games.length == 2);
+    }
+
+    @Test
+    void listNegative() {
+
+    }
+
+    @Test
+    void joinPositive() {
+
+    }
+
+    @Test
+    void joinNegative() {
+
+    }
+
 }

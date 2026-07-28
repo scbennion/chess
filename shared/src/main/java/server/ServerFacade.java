@@ -1,16 +1,22 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 
 import dataaccess.exceptions.DataAccessException;
+import dataaccess.exceptions.InvalidGameIDException;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 
+import java.io.Reader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.ArrayList;
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
@@ -28,20 +34,93 @@ public class ServerFacade {
         return handleResponse(response, AuthData.class);
     }
 
+    public AuthData login(UserData loginRequest) throws DataAccessException {
+        Map<String, String> requestBody = Map.of("username", loginRequest.username(),
+                "password", loginRequest.password());
+        HttpRequest request = buildRequest("POST", "/session", requestBody);
+        var response = sendRequest(request);
+        return handleResponse(response, AuthData.class);
+    }
+
+    public void logout(String authToken) throws DataAccessException {
+        HttpRequest request = buildRequestWithAuthToken("DELETE", "/session", null, authToken);
+        var response = sendRequest(request);
+        handleResponse(response, null);
+    }
+
+    public GameData[] listGames(String authToken) throws DataAccessException {
+        HttpRequest request = buildRequestWithAuthToken("GET", "/game", null, authToken);
+        var response = sendRequest(request);
+        var gameMap = handleResponse(response, Map.class);
+        assert gameMap != null;
+        if (gameMap.isEmpty()) {
+            return new GameData[]{};
+        } else {
+            ArrayList<Map<String, ?>> games = (ArrayList<Map<String, ?>>) gameMap.get("games");
+            return convertToGameDataList(games);
+        }
+    }
+
+    private GameData[] convertToGameDataList(ArrayList<Map<String, ?>> games) {
+        var gameDataList = new GameData[games.size()];
+        int count = 0;
+        for (Map<?, ?> game : games) {
+            var gameState = new Gson().fromJson((String) game.get("game"), Map.class);
+            return null;
+//            gameDataList[count++] = new Gson().fromJson(game.toString(), Map.class);
+//            ChessGame chessGameObject = new Gson().fromJson((String) game.get("game"), ChessGame.class);
+//            gameDataList[count++] = new GameData(((Double) game.get("gameID")).intValue(), (String) game.get("whiteUsername"), (String) game.get("blackUsername"), (String) game.get("gameName"), chessGameObject);
+        }
+        return gameDataList;
+    }
+
+    public int createGame(String authToken, String gameName) throws DataAccessException {
+        Map<String, String> requestBody = Map.of("gameName", gameName);
+        HttpRequest request = buildRequestWithAuthToken("POST", "/game", requestBody, authToken);
+        var response = sendRequest(request);
+        var bodyMap = handleResponse(response, Map.class);
+        assert bodyMap != null;
+        if (bodyMap.get("gameID") instanceof Double) {
+            return ((Double) bodyMap.get("gameID")).intValue();
+        } else if (bodyMap.get("gameID") instanceof Integer) {
+            return (Integer) bodyMap.get("gameID");
+        } else {
+            throw new InvalidGameIDException();
+        }
+    }
+
+    public void joinGame(String authToken, String colorString, int gameID) throws DataAccessException {
+        Map<String, ?> requestBody = Map.of("playerColor", colorString, "gameID", gameID);
+        HttpRequest request = buildRequestWithAuthToken("PUT", "/game", requestBody, authToken);
+        var response = sendRequest(request);
+        handleResponse(response, null);
+    }
+
     public void clear() throws DataAccessException {
         HttpRequest request = buildRequest("DELETE", "/db", null);
-        sendRequest(request);
+        var response = sendRequest(request);
+        handleResponse(response, null);
+    }
+
+    private HttpRequest buildRequestWithAuthToken(String method, String path, Object body, String authToken) {
+        HttpRequest.Builder builder = builder(method, path, body);
+        builder.setHeader("authorization", authToken);
+        return builder.build();
+    }
+
+    private HttpRequest buildRequest(String method, String path, Object body) {
+        return builder(method, path, body).build();
     }
 
     //Private methods modified from PetShop
-    private HttpRequest buildRequest(String method, String path, Object body) {
+    private HttpRequest.Builder builder(String method, String path, Object body) {
         var request = HttpRequest.newBuilder()
                 .uri(URI.create(serverUrl + path))
                 .method(method, makeRequestBody(body));
         if (body != null) {
             request.setHeader("Content-Type", "application/json");
         }
-        return request.build();
+        return request;
     }
 
     private HttpRequest.BodyPublisher makeRequestBody(Object request) {
@@ -73,7 +152,6 @@ public class ServerFacade {
         if (responseClass != null) {
             return new Gson().fromJson(response.body(), responseClass);
         }
-
         return null;
     }
 }
