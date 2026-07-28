@@ -1,11 +1,14 @@
 package client;
 
 import dataaccess.exceptions.DataAccessException;
+import dataaccess.exceptions.InvalidAuthTokenException;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
 import server.ServerFacade;
+
+import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,6 +17,7 @@ public class ServerFacadeTests {
     private static Server server;
     private static ServerFacade serverFacade;
     private final UserData TEST_USER = new UserData("popcorn", "pop", "pop@gmail.com");
+    private final UserData TEST_USER_2 = new UserData("brown", "Kentucky", "jbrown@gmail.com");
     private final String TEST_GAME_NAME = "Rookie Game";
 
     @BeforeAll
@@ -43,9 +47,8 @@ public class ServerFacadeTests {
 
     @Test
     void registerNegative() throws Exception {
-        UserData duplicate = new UserData("duplicator", "p", "me@email.com");
-        var authData = serverFacade.register(duplicate);
-        assertThrows(DataAccessException.class, () -> serverFacade.register(duplicate));
+        var authData = serverFacade.register(TEST_USER_2);
+        assertThrows(DataAccessException.class, () -> serverFacade.register(TEST_USER_2));
     }
 
     @Test
@@ -93,21 +96,32 @@ public class ServerFacadeTests {
         int gameID2 = assertDoesNotThrow(() -> serverFacade.createGame(authData.authToken(), "bobby fischer"));
         GameData[] games = assertDoesNotThrow(() -> serverFacade.listGames(authData.authToken()));
         assert (games.length == 2);
+        assert (games[0].gameID() == gameID1 || games[0].gameID() == gameID2);
+        assert (games[1].gameID() == gameID1 || games[1].gameID() == gameID2);
     }
 
     @Test
     void listNegative() {
-
+        assertThrows(DataAccessException.class, () -> serverFacade.listGames("fake auth token"));
     }
 
     @Test
     void joinPositive() {
-
+        var authToken1 = assertDoesNotThrow(() -> serverFacade.register(TEST_USER)).authToken();
+        var authToken2 = assertDoesNotThrow(() -> serverFacade.register(TEST_USER_2)).authToken();
+        int gameID = assertDoesNotThrow(() -> serverFacade.createGame(authToken1, "lichess exhibition"));
+        assertDoesNotThrow(() -> serverFacade.joinGame(authToken1, "WHITE", gameID));
+        assertDoesNotThrow(() -> serverFacade.joinGame(authToken2, "BLACK", gameID));
+        GameData[] games = assertDoesNotThrow(() -> serverFacade.listGames(authToken1));
+        assert (games[0].whiteUsername().equals(TEST_USER.username()));
+        assert (games[0].blackUsername().equals(TEST_USER_2.username()));
     }
 
     @Test
     void joinNegative() {
-
+        var authToken = assertDoesNotThrow(() -> serverFacade.register(TEST_USER)).authToken();
+        int gameID = assertDoesNotThrow(() -> serverFacade.createGame(authToken, "first game"));
+        assertThrows(DataAccessException.class, () -> serverFacade.joinGame(authToken, "bad color", gameID));
     }
 
 }
