@@ -5,8 +5,6 @@ import server.ServerFacade;
 
 public class PreLoginUI extends ReplUI {
 
-    private final String WHITE_SPACE = "\\s+";
-
     @Override
     public String prompt() {
         return "[LOGGED OUT] >>> ";
@@ -44,7 +42,7 @@ public class PreLoginUI extends ReplUI {
         try {
             String[] splitted = input.split(WHITE_SPACE);
             authToken = serverFacade.login(new UserData(splitted[1], splitted[2], null)).authToken();
-            output = "username: " + splitted[1] + "password: " + splitted[2] + "\n";
+            output = "username: " + splitted[1] + "\npassword: " + splitted[2] + "\n";
             return true;
         } catch (Exception e) {
 //            output = e.getMessage();
@@ -57,7 +55,7 @@ public class PreLoginUI extends ReplUI {
         try {
             String[] splitted = input.split(WHITE_SPACE);
             authToken = serverFacade.register(new UserData(splitted[1], splitted[2], splitted[3])).authToken();
-            output = "username: " + splitted[1] + " password: " + splitted[2] + " email: " + splitted[3] + "\n";
+            output = "username: " + splitted[1] + "\npassword: " + splitted[2] + "\nemail: " + splitted[3] + "\n";
             return true;
         } catch (Exception e) {
 //            output = e.getMessage();

@@ -5,6 +5,7 @@ import server.ServerFacade;
 public abstract class ReplUI {
     String output = "";
     String authToken = null;
+    final String WHITE_SPACE = "\\s+";
 
     public abstract String prompt();
 

@@ -12,9 +12,7 @@ public class GameplayUI {
         StringBuilder output = new StringBuilder();
         var whitePieceMap = board.getSidePieces(ChessGame.TeamColor.WHITE);
         var blackPieceMap = board.getSidePieces(ChessGame.TeamColor.BLACK);
-
         final String ALPHABET = orientation == ChessGame.TeamColor.WHITE ? "a  b  c  d  e  f  g  h" : "h  g  f  e  d  c  b  a";
-
         String colIndicator = String.format("%s%s    %s    \n", SET_BG_COLOR_LIGHT_GREY, SET_TEXT_COLOR_BLACK, ALPHABET);
         output.append(colIndicator);
         for (int y = 8; y >= 1; y--) {

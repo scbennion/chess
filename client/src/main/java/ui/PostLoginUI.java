@@ -1,6 +1,11 @@
 package ui;
 
+import dataaccess.exceptions.DataAccessException;
+import model.GameData;
 import server.ServerFacade;
+
+import static ui.EscapeSequences.RESET_TEXT_ITALIC;
+import static ui.EscapeSequences.SET_TEXT_ITALIC;
 
 public class PostLoginUI extends ReplUI {
 
@@ -41,8 +46,18 @@ public class PostLoginUI extends ReplUI {
     }
 
     private boolean createGame(String input, ServerFacade serverFacade) {
-        output = "game created";
-        return true;
+        try {
+            String gameName = input.split(WHITE_SPACE)[1];
+            serverFacade.createGame(authToken, gameName);
+            output = gameName + " game created\n";
+            return true;
+        } catch (DataAccessException e) {
+            output = "game creation error\n";
+            return false;
+        } catch (Exception e) {
+            output = "bad game name\n";
+            return false;
+        }
     }
 
     private boolean joinGame(String input, ServerFacade serverFacade) {
@@ -56,17 +71,36 @@ public class PostLoginUI extends ReplUI {
     }
 
     private boolean listGames(ServerFacade serverFacade) {
-        output = "games listed";
-        return true;
+        try {
+            StringBuilder sb = new StringBuilder();
+            GameData[] games = serverFacade.listGames(authToken);
+            for (int i = 0; i < games.length; i++) {
+                sb.append(String.format("%s: %s. %s White Player: %s Black Player: %s%s\n", i, games[i].gameName(),
+                        SET_TEXT_ITALIC, games[i].whiteUsername(), games[i].blackUsername(), RESET_TEXT_ITALIC));
+            }
+            output = sb.toString();
+            return true;
+        } catch (DataAccessException e) {
+            output = "game listing error\n";
+            return false;
+        }
     }
 
     private boolean logout(ServerFacade serverFacade) {
-        output = "logged out";
+        output = "logged out\n";
         return true;
     }
 
     private void help() {
-        output = "helped";
+        output = """
+                 possible commands:
+                 create <GAME_NAME>
+                 join <ID> <WHITE|BLACK>
+                 observe <ID>
+                 logout
+                 quit
+                 help
+                """;
     }
 
 }
