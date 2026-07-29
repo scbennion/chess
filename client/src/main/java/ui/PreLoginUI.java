@@ -3,16 +3,17 @@ package ui;
 import model.UserData;
 import server.ServerFacade;
 
-public class PreLoginUI {
+public class PreLoginUI extends ReplUI {
 
-    private String output = "";
     private final String WHITE_SPACE = "\\s+";
     private String authToken = null;
 
+    @Override
     public String prompt() {
         return "[LOGGED OUT] >>> ";
     }
 
+    @Override
     public String eval(String input, ServerFacade serverFacade) {
         input = input.strip();
         if (input.toLowerCase().startsWith("register")) {
@@ -28,10 +29,6 @@ public class PreLoginUI {
             help();
             return "help";
         }
-    }
-
-    public String print() {
-        return output;
     }
 
     public String getAuthToken() {
