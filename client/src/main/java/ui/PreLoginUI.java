@@ -6,7 +6,6 @@ import server.ServerFacade;
 public class PreLoginUI extends ReplUI {
 
     private final String WHITE_SPACE = "\\s+";
-    private String authToken = null;
 
     @Override
     public String prompt() {
@@ -31,10 +30,6 @@ public class PreLoginUI extends ReplUI {
         }
     }
 
-    public String getAuthToken() {
-        return authToken;
-    }
-
     private void help() {
         output = """
                  possible commands:
@@ -43,10 +38,6 @@ public class PreLoginUI extends ReplUI {
                  quit
                  help
                 """;
-    }
-
-    private void quit() {
-        output = "";
     }
 
     private boolean login(String input, ServerFacade serverFacade) {

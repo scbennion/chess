@@ -2,8 +2,9 @@ package ui;
 
 import server.ServerFacade;
 
-abstract class ReplUI {
+public abstract class ReplUI {
     String output = "";
+    String authToken = null;
 
     public abstract String prompt();
 
@@ -13,4 +14,11 @@ abstract class ReplUI {
         return output;
     }
 
+    public String getAuthToken() {
+        return authToken;
+    }
+
+    protected void quit() {
+        output = "";
+    }
 }

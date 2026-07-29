@@ -3,7 +3,7 @@ package client;
 import chess.*;
 import server.Server;
 import server.ServerFacade;
-import ui.PreLoginUI;
+import ui.*;
 
 import java.util.Scanner;
 
@@ -18,7 +18,7 @@ public class ClientMain {
         port = server.run(port);
         System.out.println("Started test HTTP server on " + port);
         ServerFacade serverFacade = new ServerFacade(port);
-        PreLoginUI ui = new PreLoginUI();
+        ReplUI ui = new PreLoginUI();
         System.out.println("♕ Welcome to 240 Chess Client. Type HELP to get started ♕\n");
         Scanner scanner = new Scanner(System.in);
 
@@ -28,6 +28,12 @@ public class ClientMain {
             String read = scanner.nextLine();
             eval = ui.eval(read, serverFacade);
             System.out.print(ui.print());
+
+            if (eval.equals("registered") || eval.equals("logged in")) {
+                ui = new PostLoginUI(ui.getAuthToken());
+            } else if (eval.equals("logged out")) {
+                ui = new PreLoginUI();
+            }
         }
         System.exit(0);
     }
