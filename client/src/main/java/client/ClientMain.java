@@ -7,6 +7,8 @@ import ui.*;
 
 import java.util.Scanner;
 
+import static ui.EscapeSequences.SET_TEXT_COLOR_WHITE;
+
 public class ClientMain {
     public static void main(String[] args) {
         int port = 8080;
@@ -16,6 +18,7 @@ public class ClientMain {
 
         Server server = new Server();
         port = server.run(port);
+        System.out.print(SET_TEXT_COLOR_WHITE);
         System.out.println("Started test HTTP server on " + port);
         ServerFacade serverFacade = new ServerFacade(port);
         ReplUI ui = new PreLoginUI();

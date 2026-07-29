@@ -36,6 +36,7 @@ public class GameplayUI {
             output.append(rowIndicator).append("\n");
         }
         output.append(colIndicator);
+        output.append(SET_BG_COLOR_BLACK).append(SET_TEXT_COLOR_WHITE);
         return output.toString();
     }
 

@@ -1,13 +1,23 @@
 package ui;
 
+import chess.ChessBoard;
+import chess.ChessGame;
+import dataaccess.exceptions.AlreadyTakenException;
 import dataaccess.exceptions.DataAccessException;
+import dataaccess.exceptions.InvalidGameIDException;
 import model.GameData;
 import server.ServerFacade;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static ui.EscapeSequences.RESET_TEXT_ITALIC;
 import static ui.EscapeSequences.SET_TEXT_ITALIC;
 
 public class PostLoginUI extends ReplUI {
+
+    private GameplayUI gamePlayUI = new GameplayUI();
+    private Map<Integer, Integer> gameIDTracker = new HashMap<>();
 
     public PostLoginUI(String authToken) {
         this.authToken = authToken;
@@ -61,8 +71,36 @@ public class PostLoginUI extends ReplUI {
     }
 
     private boolean joinGame(String input, ServerFacade serverFacade) {
-        output = "game joined";
-        return true;
+        try {
+            String[] splitted = input.split(WHITE_SPACE);
+            int uiGameID = Integer.parseInt(splitted[1]);
+            String color = splitted[2];
+            if (!color.equalsIgnoreCase("WHITE") && !color.equalsIgnoreCase("BLACK")) {
+                output = "unable to join game. Make sure you format your color as 'WHITE' or 'BLACK'\n";
+                return false;
+            }
+            serverFacade.joinGame(authToken, color.toUpperCase(), uiGameID);
+            ChessGame.TeamColor orientation = color.equalsIgnoreCase("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+            output = "game joined\n" + gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), orientation);
+            return true;
+        } catch (DataAccessException e) {
+            output = "unable to join game. Make sure your game ID is correct and the player color is available\n";
+        } catch (RuntimeException e) {
+            output = "unable to join game. Make sure your game ID is an integer.\n";
+        }
+        return false;
+    }
+
+    private ChessBoard getSpecificBoard(int uiGameID, ServerFacade serverFacade) throws DataAccessException {
+        //slightly inefficient because it gets all the games in the database
+        //future implementations should be more specific for better performance
+        GameData[] games = serverFacade.listGames(authToken);
+        for (GameData gameData : games) {
+            if (gameData.gameID() == gameIDTracker.get(uiGameID)) {
+                return gameData.game().getBoard();
+            }
+        }
+        throw new InvalidGameIDException();
     }
 
     private boolean observeGame(String input, ServerFacade serverFacade) {
@@ -75,8 +113,9 @@ public class PostLoginUI extends ReplUI {
             StringBuilder sb = new StringBuilder();
             GameData[] games = serverFacade.listGames(authToken);
             for (int i = 0; i < games.length; i++) {
-                sb.append(String.format("%s: %s. %s White Player: %s Black Player: %s%s\n", i, games[i].gameName(),
+                sb.append(String.format("%s: %s. %s White Player: %s Black Player: %s%s\n", i + 1, games[i].gameName(),
                         SET_TEXT_ITALIC, games[i].whiteUsername(), games[i].blackUsername(), RESET_TEXT_ITALIC));
+                gameIDTracker.put(i + 1, games[i].gameID());
             }
             output = sb.toString();
             return true;
@@ -97,6 +136,7 @@ public class PostLoginUI extends ReplUI {
                  create <GAME_NAME>
                  join <ID> <WHITE|BLACK>
                  observe <ID>
+                 list
                  logout
                  quit
                  help
