@@ -1,23 +1,28 @@
 package ui;
 
+import model.UserData;
+import server.ServerFacade;
+
 public class PreLoginUI {
 
     private String output = "";
     private final String WHITE_SPACE = "\\s+";
+    private String authToken = null;
 
     public String prompt() {
         return "[LOGGED OUT] >>> ";
     }
 
-    public String eval(String input) {
+    public String eval(String input, ServerFacade serverFacade) {
         input = input.strip();
         if (input.toLowerCase().startsWith("register")) {
-            boolean successfulRegister = register(input);
+            boolean successfulRegister = register(input, serverFacade);
             return successfulRegister ? "registered" : "failed";
         } else if (input.toLowerCase().startsWith("login")) {
-            boolean successfulLogin = login(input);
+            boolean successfulLogin = login(input, serverFacade);
             return successfulLogin ? "logged in" : "failed";
         } else if (input.equalsIgnoreCase("quit")) {
+            quit();
             return "quit";
         } else {
             help();
@@ -27,6 +32,10 @@ public class PreLoginUI {
 
     public String print() {
         return output;
+    }
+
+    public String getAuthToken() {
+        return authToken;
     }
 
     private void help() {
@@ -39,30 +48,34 @@ public class PreLoginUI {
                 """;
     }
 
-    private boolean login(String input) {
+    private void quit() {
+        output = "";
+    }
+
+    private boolean login(String input, ServerFacade serverFacade) {
         try {
             String[] splitted = input.split(WHITE_SPACE);
-            String username = splitted[1];
-            String password = splitted[2];
-            output = "username: " + username + "password: " + password;
+            authToken = serverFacade.login(new UserData(splitted[1], splitted[2], null)).authToken();
+            output = "username: " + splitted[1] + "password: " + splitted[2] + "\n";
             return true;
         } catch (Exception e) {
-            output = "bad username or password";
+//            output = e.getMessage();
+            output = "bad username or password\n";
             return false;
         }
     }
 
-    private boolean register(String input) {
+    private boolean register(String input, ServerFacade serverFacade) {
         try {
             String[] splitted = input.split(WHITE_SPACE);
-            output = "username: " + splitted[1] + "password: " + splitted[2] + "email: " + splitted[3];
+            authToken = serverFacade.register(new UserData(splitted[1], splitted[2], splitted[3])).authToken();
+            output = "username: " + splitted[1] + " password: " + splitted[2] + " email: " + splitted[3] + "\n";
             return true;
         } catch (Exception e) {
-            output = "bad username, password or email";
+//            output = e.getMessage();
+            output = "your username was already taken or you failed to provide all three fields\n";
             return false;
         }
-
     }
-
 
 }
