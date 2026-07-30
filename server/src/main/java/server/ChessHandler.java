@@ -27,13 +27,13 @@ public class ChessHandler {
     public void processLogout(Context ctx) throws DataAccessException {
         String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
         service.logout(authToken);
-        ctx.json(new Gson().toJson(Map.of()));
+        ctx.result(new Gson().toJson(Map.of()));
     }
 
     public void processListGames(Context ctx) throws DataAccessException {
         String authToken = new Gson().fromJson(ctx.header("authorization"), String.class);
         GameData[] games = service.listGames(authToken);
-        ctx.json(new Gson().toJson(Map.of("games", games)));
+        ctx.result(new Gson().toJson(new ListGamesResponse(games)));
     }
 
     public void processCreateGame(Context ctx) throws DataAccessException {
@@ -44,7 +44,7 @@ public class ChessHandler {
             throw new BadRequestException();
         }
         int gameID = service.createGame(authToken, gameName);
-        ctx.json(new Gson().toJson(Map.of("gameID", gameID)));
+        ctx.result(new Gson().toJson(Map.of("gameID", gameID)));
     }
 
     public void processJoinGame(Context ctx) throws DataAccessException {
@@ -69,7 +69,7 @@ public class ChessHandler {
 
     public void processClear(Context ctx) throws DataAccessException {
         service.clear();
-        ctx.json(new Gson().toJson(Map.of()));
+        ctx.result(new Gson().toJson(Map.of()));
     }
 
     public void exceptionHandler(Exception e, Context ctx) {
