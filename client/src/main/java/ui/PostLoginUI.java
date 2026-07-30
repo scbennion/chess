@@ -2,7 +2,6 @@ package ui;
 
 import chess.ChessBoard;
 import chess.ChessGame;
-import dataaccess.exceptions.AlreadyTakenException;
 import dataaccess.exceptions.DataAccessException;
 import dataaccess.exceptions.InvalidGameIDException;
 import model.GameData;
@@ -81,12 +80,12 @@ public class PostLoginUI extends ReplUI {
             }
             serverFacade.joinGame(authToken, color.toUpperCase(), uiGameID);
             ChessGame.TeamColor orientation = color.equalsIgnoreCase("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-            output = "game joined\n" + gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), orientation);
+            output = "game joined and ready to play\n" + gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), orientation);
             return true;
         } catch (DataAccessException e) {
             output = "unable to join game. Make sure your game ID is correct and the player color is available\n";
         } catch (RuntimeException e) {
-            output = "unable to join game. Make sure your game ID is an integer.\n";
+            output = "unable to join game. Make sure your game ID is an integer and you included your side color.\n";
         }
         return false;
     }
@@ -104,8 +103,17 @@ public class PostLoginUI extends ReplUI {
     }
 
     private boolean observeGame(String input, ServerFacade serverFacade) {
-        output = "game observed";
-        return true;
+        try {
+            int uiGameID = Integer.parseInt(input.split(WHITE_SPACE)[1]);
+            output = gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), ChessGame.TeamColor.WHITE);
+            return true;
+        } catch (DataAccessException e) {
+            output = "unable to observe game. Make sure your game ID is correct.\n";
+            return false;
+        } catch (RuntimeException e) {
+            output = "unable to observe game. Make sure your game ID is an integer.\n";
+            return false;
+        }
     }
 
     private boolean listGames(ServerFacade serverFacade) {
@@ -126,8 +134,14 @@ public class PostLoginUI extends ReplUI {
     }
 
     private boolean logout(ServerFacade serverFacade) {
-        output = "logged out\n";
-        return true;
+        try {
+            serverFacade.logout(authToken);
+            output = "logged out\n";
+            return true;
+        } catch (DataAccessException e) {
+            output = "unable to logout. YOU'RE TRAPPED HERE WITH ME FOREVER\n";
+            return false;
+        }
     }
 
     private void help() {
