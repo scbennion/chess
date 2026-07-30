@@ -1,6 +1,5 @@
-package server;
+package client;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 
 import dataaccess.exceptions.DataAccessException;
@@ -9,22 +8,28 @@ import model.AuthData;
 import model.GameData;
 import model.ListGamesResponse;
 import model.UserData;
+import server.Server;
 
-import java.io.Reader;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.util.HashMap;
 import java.util.Map;
-import java.util.ArrayList;
 
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
+    Server server;
 
     public ServerFacade(int port) {
+        server = new Server();
+        port = server.run(port);
         serverUrl = "http://localhost:" + port;
+        System.out.println("Started test HTTP server on " + port);
+    }
+
+    public void stop() {
+        server.stop();
     }
 
     public AuthData register(UserData registerRequest) throws DataAccessException {
