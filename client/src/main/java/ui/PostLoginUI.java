@@ -107,11 +107,8 @@ public class PostLoginUI extends ReplUI {
             int uiGameID = Integer.parseInt(input.split(WHITE_SPACE)[1]);
             output = gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), ChessGame.TeamColor.WHITE);
             return true;
-        } catch (DataAccessException e) {
+        } catch (Exception e) {
             output = "unable to observe game. Make sure your game ID is correct.\n";
-            return false;
-        } catch (RuntimeException e) {
-            output = "unable to observe game. Make sure your game ID is an integer.\n";
             return false;
         }
     }
