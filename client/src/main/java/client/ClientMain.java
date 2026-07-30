@@ -1,7 +1,6 @@
 package client;
 
 import chess.*;
-import server.Server;
 import server.ServerFacade;
 import ui.*;
 
@@ -15,12 +14,9 @@ public class ClientMain {
         if (args.length >= 1) {
             port = Integer.parseInt(args[0]);
         }
-
-        Server server = new Server();
-        port = server.run(port);
-        System.out.print(SET_TEXT_COLOR_WHITE);
-        System.out.println("Started test HTTP server on " + port);
         ServerFacade serverFacade = new ServerFacade(port);
+
+        System.out.print(SET_TEXT_COLOR_WHITE);
         ReplUI ui = new PreLoginUI();
         System.out.println("♕ Welcome to 240 Chess Client. Type HELP to get started ♕\n");
         Scanner scanner = new Scanner(System.in);
@@ -38,6 +34,6 @@ public class ClientMain {
                 ui = new PreLoginUI();
             }
         }
-        System.exit(0);
+        serverFacade.stop();
     }
 }
