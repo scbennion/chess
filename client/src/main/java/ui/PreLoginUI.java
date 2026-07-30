@@ -1,7 +1,7 @@
 package ui;
 
 import model.UserData;
-import server.ServerFacade;
+import client.ServerFacade;
 
 public class PreLoginUI extends ReplUI {
 
