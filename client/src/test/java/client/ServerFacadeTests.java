@@ -16,7 +16,7 @@ public class ServerFacadeTests {
 
     @BeforeAll
     public static void init() {
-        serverFacade = new ServerFacade(8080);
+        serverFacade = new ServerFacade(0);
     }
 
     @AfterAll
