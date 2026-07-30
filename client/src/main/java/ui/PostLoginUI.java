@@ -5,7 +5,7 @@ import chess.ChessGame;
 import dataaccess.exceptions.DataAccessException;
 import dataaccess.exceptions.InvalidGameIDException;
 import model.GameData;
-import client.ServerFacade;
+import server.ServerFacade;
 
 import java.util.HashMap;
 import java.util.Map;

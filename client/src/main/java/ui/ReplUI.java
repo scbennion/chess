@@ -1,6 +1,6 @@
 package ui;
 
-import client.ServerFacade;
+import server.ServerFacade;
 
 public abstract class ReplUI {
     String output = "";

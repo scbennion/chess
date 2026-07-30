@@ -1,4 +1,4 @@
-package client;
+package server;
 
 import com.google.gson.Gson;
 
@@ -8,7 +8,6 @@ import model.AuthData;
 import model.GameData;
 import model.ListGamesResponse;
 import model.UserData;
-import server.Server;
 
 import java.net.URI;
 import java.net.http.HttpClient;
