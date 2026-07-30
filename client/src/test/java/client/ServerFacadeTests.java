@@ -12,9 +12,9 @@ public class ServerFacadeTests {
 
     private static Server server;
     private static ServerFacade serverFacade;
-    private final UserData TEST_USER = new UserData("popcorn", "pop", "pop@gmail.com");
-    private final UserData TEST_USER_2 = new UserData("brown", "Kentucky", "jbrown@gmail.com");
-    private final String TEST_GAME_NAME = "Rookie Game";
+    private static final UserData TEST_USER = new UserData("popcorn", "pop", "pop@gmail.com");
+    private static final UserData TEST_USER_2 = new UserData("brown", "Kentucky", "jbrown@gmail.com");
+    private static final String TEST_GAME_NAME = "Rookie Game";
 
     @BeforeAll
     public static void init() {
@@ -43,7 +43,7 @@ public class ServerFacadeTests {
 
     @Test
     void registerNegative() throws Exception {
-        var authData = serverFacade.register(TEST_USER_2);
+        serverFacade.register(TEST_USER_2);
         assertThrows(DataAccessException.class, () -> serverFacade.register(TEST_USER_2));
     }
 
