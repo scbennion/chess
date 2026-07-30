@@ -22,10 +22,7 @@ public class ServerFacade {
     Server server;
 
     public ServerFacade(int port) {
-        server = new Server();
-        port = server.run(port);
         serverUrl = "http://localhost:" + port;
-        System.out.println("Started test HTTP server on " + port);
     }
 
     public void stop() {

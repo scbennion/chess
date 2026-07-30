@@ -4,11 +4,13 @@ import dataaccess.exceptions.DataAccessException;
 import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
+import server.Server;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 public class ServerFacadeTests {
 
+    private static Server server;
     private static ServerFacade serverFacade;
     private final UserData TEST_USER = new UserData("popcorn", "pop", "pop@gmail.com");
     private final UserData TEST_USER_2 = new UserData("brown", "Kentucky", "jbrown@gmail.com");
@@ -16,12 +18,15 @@ public class ServerFacadeTests {
 
     @BeforeAll
     public static void init() {
-        serverFacade = new ServerFacade(0);
+        server = new Server();
+        var port = server.run(0);
+        System.out.println("Started test HTTP server on " + port);
+        serverFacade = new ServerFacade(port);
     }
 
     @AfterAll
     static void stopServer() {
-        serverFacade.stop();
+        server.stop();
     }
 
     @BeforeEach
