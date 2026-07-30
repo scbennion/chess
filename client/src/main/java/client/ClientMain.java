@@ -1,6 +1,5 @@
 package client;
 
-import server.ServerFacade;
 import ui.*;
 
 import java.util.Scanner;
