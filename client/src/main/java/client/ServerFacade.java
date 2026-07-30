@@ -8,7 +8,6 @@ import model.AuthData;
 import model.GameData;
 import model.ListGamesResponse;
 import model.UserData;
-import server.Server;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -19,14 +18,9 @@ import java.util.Map;
 public class ServerFacade {
     private final HttpClient client = HttpClient.newHttpClient();
     private final String serverUrl;
-    Server server;
 
     public ServerFacade(int port) {
         serverUrl = "http://localhost:" + port;
-    }
-
-    public void stop() {
-        server.stop();
     }
 
     public AuthData register(UserData registerRequest) throws DataAccessException {
