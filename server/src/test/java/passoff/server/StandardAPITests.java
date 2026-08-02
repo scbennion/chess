@@ -56,7 +56,6 @@ public class StandardAPITests {
         Assertions.assertEquals(HttpURLConnection.HTTP_OK, serverFacade.getStatusCode(),
                 "Server response code was not 200 OK");
         Assertions.assertNotNull(htmlFromServer, "Server returned an empty file");
-        //This assertion should be true, not sure what's going on. Stepped through debugger and the phrase shows up in the server html
         Assertions.assertTrue(htmlFromServer.contains("CS 240 Chess Server Web API"),
                 "file returned did not contain an exact match of text from provided index.html");
     }
