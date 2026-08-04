@@ -17,7 +17,15 @@ public class Server {
                 .post("/game", handler::processCreateGame)
                 .put("/game", handler::processJoinGame)
                 .delete("/db", handler::processClear)
-                .exception(Exception.class, handler::exceptionHandler);
+                .exception(Exception.class, handler::exceptionHandler)
+                .ws("/ws", ws -> {
+                    ws.onConnect(ctx -> {
+                        ctx.enableAutomaticPings();
+                        System.out.println("Websocket connected");
+                    });
+                    ws.onMessage(ctx -> ctx.send("WebSocket response:" + ctx.message()));
+                    ws.onClose(_ -> System.out.println("Websocket closed"));
+                });
         // Register your endpoints and exception handlers here.
 
     }
