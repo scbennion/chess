@@ -19,13 +19,6 @@ public class WSFacade extends Endpoint {
 
         WebSocketContainer container = ContainerProvider.getWebSocketContainer();
         session = container.connectToServer(this, socketURI);
-
-        this.session.addMessageHandler(new MessageHandler.Whole<String>() {
-            public void onMessage(String message) {
-                System.out.println(message);
-                System.out.println("\nEnter another message you want to echo:");
-            }
-        });
     }
 
     public void send(String message) throws IOException {

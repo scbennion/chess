@@ -22,7 +22,7 @@ public class ClientMain {
 
         Scanner scaner = new Scanner(System.in);
 
-        System.out.println("Enter a message you want to echo:");
+        System.out.println("Enter a message you want to test:");
         while (true) {
             String s = scaner.nextLine();
             wsFacade.send(s);
@@ -51,4 +51,6 @@ public class ClientMain {
         }
         System.exit(0);
     }
+
+
 }

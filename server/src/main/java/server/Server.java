@@ -9,6 +9,8 @@ public class Server {
 
     public Server() {
         ChessHandler handler = new ChessHandler();
+        WebSocketHandler webSocketHandler = new WebSocketHandler();
+
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .post("/user", handler::processRegister)
                 .post("/session", handler::processLogin)
@@ -19,15 +21,10 @@ public class Server {
                 .delete("/db", handler::processClear)
                 .exception(Exception.class, handler::exceptionHandler)
                 .ws("/ws", ws -> {
-                    ws.onConnect(ctx -> {
-                        ctx.enableAutomaticPings();
-                        System.out.println("Websocket connected");
-                    });
-                    ws.onMessage(ctx -> ctx.send("WebSocket response:" + ctx.message()));
-                    ws.onClose(_ -> System.out.println("Websocket closed"));
+                    ws.onConnect(webSocketHandler);
+                    ws.onMessage(webSocketHandler);
+                    ws.onClose(webSocketHandler);
                 });
-        // Register your endpoints and exception handlers here.
-
     }
 
     public int run(int desiredPort) {
