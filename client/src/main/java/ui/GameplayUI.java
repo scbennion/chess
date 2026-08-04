@@ -4,21 +4,45 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
+import client.ServerFacade;
+import client.WSFacade;
 
 import static ui.EscapeSequences.*;
 
-public class GameplayUI {
+public class GameplayUI extends ReplUI {
+
+//    Help	Displays text informing the user what actions they can take.
+//    Redraw Chess Board	Redraws the chess board upon the user’s request.
+//    Leave	Removes the user from the game (whether they are playing or observing the game). The client transitions back to the Post-Login UI.
+//    Make Move	Allow the user to input what move they want to make. The board is updated to reflect the result of the move, and the board automatically updates on all clients involved in the game.
+//    Resign	Prompts the user to confirm they want to resign. If they do, the user forfeits the game and the game is over. Does not cause the user to leave the game.
+//    Highlight Legal Moves	Allows the user to input the piece for which they want to highlight legal moves. The selected piece’s current square and all squares it can legally move to are highlighted. This is a local operation and has no effect on remote users’ screens.
+
+    @Override
+    public String prompt() {
+        return "[GAME] >>> ";
+    }
+
+    @Override
+    public <T> String eval(String input, T connector) {
+        WSFacade wsFacade = (WSFacade) connector;
+        return "";
+    }
+
+    private boolean help() {
+        return false;
+    }
 
     public String drawBoard(ChessBoard board, ChessGame.TeamColor orientation) {
         StringBuilder output = new StringBuilder();
         var whitePieceMap = board.getSidePieces(ChessGame.TeamColor.WHITE);
         var blackPieceMap = board.getSidePieces(ChessGame.TeamColor.BLACK);
         final String alphabet = orientation == ChessGame.TeamColor.WHITE ? "a  b  c  d  e  f  g  h" : "h  g  f  e  d  c  b  a";
-        String colIndicator = String.format("%s%s    %s    \n", SET_BG_COLOR_LIGHT_GREY, SET_TEXT_COLOR_BLACK, alphabet);
+        String colIndicator = String.format("%s%s    %s    %s\n", SET_BG_COLOR_LIGHT_GREY, SET_TEXT_COLOR_BLACK, alphabet, RESET_BG_COLOR);
         output.append(colIndicator);
         for (int y = 8; y >= 1; y--) {
             int row = orientation == ChessGame.TeamColor.WHITE ? y : 9 - y;
-            String rowIndicator = String.format("%s%s %s ", SET_BG_COLOR_LIGHT_GREY, SET_TEXT_COLOR_BLACK, row);
+            String rowIndicator = String.format("%s%s %s %s", SET_BG_COLOR_LIGHT_GREY, SET_TEXT_COLOR_BLACK, row, RESET_BG_COLOR);
             output.append(rowIndicator);
             for (int x = 1; x <= 8; x++) {
                 int col = orientation == ChessGame.TeamColor.WHITE ? x : 9 - x;
@@ -82,5 +106,4 @@ public class GameplayUI {
         testBoard.resetBoard();
         System.out.println(new GameplayUI().drawBoard(testBoard, ChessGame.TeamColor.BLACK));
     }
-
 }

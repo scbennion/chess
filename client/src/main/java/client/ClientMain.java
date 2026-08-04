@@ -1,12 +1,13 @@
 package client;
 
 import ui.*;
+import websocket.messages.ServerMessage;
 
 import java.util.Scanner;
 
 import static ui.EscapeSequences.SET_TEXT_COLOR_WHITE;
 
-public class ClientMain {
+public class ClientMain implements ServerMessageObserver {
     private static final int TEST_PORT = 8000;
     private static ServerFacade serverFacade;
     private static WSFacade wsFacade;
@@ -19,17 +20,6 @@ public class ClientMain {
 
     public static void main(String[] args) throws Exception {
         new ClientMain(TEST_PORT);
-
-        Scanner scaner = new Scanner(System.in);
-
-        System.out.println("Enter a message you want to test:");
-        while (true) {
-            String s = scaner.nextLine();
-            wsFacade.send(s);
-            if (s.equals("break")) {
-                break;
-            }
-        }
 
         System.out.print(SET_TEXT_COLOR_WHITE);
         ReplUI ui = new PreLoginUI();
@@ -53,4 +43,8 @@ public class ClientMain {
     }
 
 
+    @Override
+    public void notify(ServerMessage message) {
+        System.out.println(message.toString());
+    }
 }

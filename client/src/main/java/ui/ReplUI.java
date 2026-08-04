@@ -9,7 +9,7 @@ public abstract class ReplUI {
 
     public abstract String prompt();
 
-    public abstract String eval(String input, ServerFacade serverFacade);
+    public abstract <T> String eval(String input, T connector);
 
     public String print() {
         return output;

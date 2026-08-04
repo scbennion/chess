@@ -27,8 +27,10 @@ public class PostLoginUI extends ReplUI {
         return "[LOGGED IN] >>> ";
     }
 
+
     @Override
-    public String eval(String input, ServerFacade serverFacade) {
+    public <T> String eval(String input, T connector) {
+        ServerFacade serverFacade = (ServerFacade) connector;
         input = input.strip();
         if (input.toLowerCase().startsWith("create")) {
             boolean successfulCreation = createGame(input, serverFacade);

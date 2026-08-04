@@ -11,7 +11,8 @@ public class PreLoginUI extends ReplUI {
     }
 
     @Override
-    public String eval(String input, ServerFacade serverFacade) {
+    public <T> String eval(String input, T connector) {
+        ServerFacade serverFacade = (ServerFacade) connector;
         input = input.strip();
         if (input.toLowerCase().startsWith("register")) {
             boolean successfulRegister = register(input, serverFacade);
