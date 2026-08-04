@@ -25,7 +25,7 @@ public class PreLoginUI extends ReplUI {
             return "quit";
         } else {
             help();
-            return "help";
+            return "helped";
         }
     }
 

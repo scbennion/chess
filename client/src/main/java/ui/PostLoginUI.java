@@ -15,11 +15,13 @@ import static ui.EscapeSequences.SET_TEXT_ITALIC;
 
 public class PostLoginUI extends ReplUI {
 
-    private GameplayUI gamePlayUI = new GameplayUI();
+    //gamePlayUI to be removed once observe game is fully implemented
+    private GameplayUI gamePlayUI;
     private Map<Integer, Integer> gameIDTracker = new HashMap<>();
 
     public PostLoginUI(String authToken) {
         this.authToken = authToken;
+        gamePlayUI = new GameplayUI(authToken);
     }
 
     @Override
@@ -52,7 +54,7 @@ public class PostLoginUI extends ReplUI {
             return successfulLogout ? "logged out" : "failed";
         } else {
             help();
-            return "help";
+            return "helped";
         }
     }
 

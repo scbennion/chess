@@ -18,6 +18,10 @@ public class GameplayUI extends ReplUI {
 //    Resign	Prompts the user to confirm they want to resign. If they do, the user forfeits the game and the game is over. Does not cause the user to leave the game.
 //    Highlight Legal Moves	Allows the user to input the piece for which they want to highlight legal moves. The selected piece’s current square and all squares it can legally move to are highlighted. This is a local operation and has no effect on remote users’ screens.
 
+    public GameplayUI(String authToken) {
+        this.authToken = authToken;
+    }
+
     @Override
     public String prompt() {
         return "[GAME] >>> ";
@@ -25,12 +29,30 @@ public class GameplayUI extends ReplUI {
 
     @Override
     public <T> String eval(String input, T connector) {
-        WSFacade wsFacade = (WSFacade) connector;
-        return "";
+        ServerFacade serverFacade = (ServerFacade) connector;
+        input = input.strip();
+        if (input.equalsIgnoreCase("redraw")) {
+            return "game redrawn";
+        } else if (input.equalsIgnoreCase("leave")) {
+            return "game left";
+        } else if (input.toLowerCase().startsWith("MAKE_MOVE")) {
+            return "move made";
+        } else if (input.toLowerCase().startsWith("HIGHLIGHT")) {
+            return "highlighted";
+        } else {
+            help();
+            return "helped";
+        }
     }
 
-    private boolean help() {
-        return false;
+    private void help() {
+        output = String.format("""
+                HELP\t%1$slist possible game commands%2$s
+                REDRAW\t%1$sredraw board%2$s
+                LEAVE\t%1$sleave game%2$s
+                MAKE_MOVE <POSITION> <POSITION>\t%1$sredraw board%2$s
+                HIGHLIGHT <POSITION>\t%1$shighlights legal moves for a piece%2$s
+                """, SET_TEXT_ITALIC, RESET_TEXT_ITALIC);
     }
 
     public String drawBoard(ChessBoard board, ChessGame.TeamColor orientation) {
@@ -99,11 +121,5 @@ public class GameplayUI extends ReplUI {
             case ROOK -> "R";
             case PAWN -> "P";
         };
-    }
-
-    public static void main(String[] args) {
-        ChessBoard testBoard = new ChessBoard();
-        testBoard.resetBoard();
-        System.out.println(new GameplayUI().drawBoard(testBoard, ChessGame.TeamColor.BLACK));
     }
 }

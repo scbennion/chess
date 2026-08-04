@@ -33,10 +33,12 @@ public class ClientMain implements ServerMessageObserver {
             eval = ui.eval(read, serverFacade);
             System.out.print(ui.print());
 
-            if (eval.equals("registered") || eval.equals("logged in")) {
+            if (eval.equals("registered") || eval.equals("logged in") || eval.equals("game left")) {
                 ui = new PostLoginUI(ui.getAuthToken());
             } else if (eval.equals("logged out")) {
                 ui = new PreLoginUI();
+            } else if (eval.equals("game joined") || eval.equals("game observed")) {
+                ui = new GameplayUI(ui.getAuthToken());
             }
         }
         System.exit(0);
