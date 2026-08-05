@@ -19,6 +19,13 @@ public class Service {
         gameDAO = new SQLGameDAO();
     }
 
+    public Service(GameDAO gameDAO) {
+        userDAO = new SQLUserDAO();
+        authDAO = new SQLAuthDAO();
+        this.gameDAO = gameDAO;
+    }
+
+
     public AuthData register(UserData registerRequest) throws DataAccessException {
         if (registerRequest == null || registerRequest.username() == null
                 || registerRequest.password() == null || registerRequest.email() == null) {
