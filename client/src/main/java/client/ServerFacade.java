@@ -50,9 +50,9 @@ public class ServerFacade {
         var response = sendRequest(request);
         var gameMap = handleResponse(response, ListGamesResponse.class);
         assert gameMap != null;
-        for (GameData gameData : gameMap.games()) {
-            gameData.game().getBoard().buildPieceCaches();
-        }
+//        for (GameData gameData : gameMap.games()) {
+//            gameData.game().getBoard().buildPieceCaches();
+//        }
         return gameMap.games();
     }
 
