@@ -18,6 +18,7 @@ public class PostLoginUI extends ReplUI {
     //gamePlayUI to be removed once observe game is fully implemented
     private GameplayUI gamePlayUI;
     private Map<Integer, Integer> gameIDTracker = new HashMap<>();
+    private int connectedGameID = -1;
 
     public PostLoginUI(String authToken) {
         this.authToken = authToken;
@@ -28,7 +29,6 @@ public class PostLoginUI extends ReplUI {
     public String prompt() {
         return "[LOGGED IN] >>> ";
     }
-
 
     @Override
     public <T> String eval(String input, T connector) {
@@ -58,6 +58,10 @@ public class PostLoginUI extends ReplUI {
         }
     }
 
+    public int getConnectedGameID() {
+        return connectedGameID;
+    }
+
     private boolean createGame(String input, ServerFacade serverFacade) {
         try {
             String gameName = input.split(WHITE_SPACE)[1];
@@ -73,6 +77,13 @@ public class PostLoginUI extends ReplUI {
         }
     }
 
+    /**
+     * attempts to join a game using uiGameID and player color
+     *
+     * @param input        user join game input
+     * @param serverFacade Http Request Controller
+     * @return stored gameID or -1 if unsuccessful
+     */
     private boolean joinGame(String input, ServerFacade serverFacade) {
         try {
             String[] splitted = input.split(WHITE_SPACE);
@@ -82,16 +93,18 @@ public class PostLoginUI extends ReplUI {
                 output = "unable to join game. Make sure you format your color as 'WHITE' or 'BLACK'\n";
                 return false;
             }
-            serverFacade.joinGame(authToken, color.toUpperCase(), uiGameID);
+            connectedGameID = gameIDTracker.get(uiGameID);
+            serverFacade.joinGame(authToken, color.toUpperCase(), connectedGameID);
             ChessGame.TeamColor orientation = color.equalsIgnoreCase("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
             output = "game joined and ready to play\n" + gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), orientation);
             return true;
         } catch (DataAccessException e) {
             output = "unable to join game. Make sure your game ID is correct and the player color is available\n";
+            return false;
         } catch (RuntimeException e) {
             output = "unable to join game. Make sure your game ID is an integer and you included your side color.\n";
+            return false;
         }
-        return false;
     }
 
     private ChessBoard getSpecificBoard(int uiGameID, ServerFacade serverFacade) throws DataAccessException {
@@ -109,6 +122,7 @@ public class PostLoginUI extends ReplUI {
     private boolean observeGame(String input, ServerFacade serverFacade) {
         try {
             int uiGameID = Integer.parseInt(input.split(WHITE_SPACE)[1]);
+            connectedGameID = gameIDTracker.get(uiGameID);
             output = gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), ChessGame.TeamColor.WHITE);
             return true;
         } catch (Exception e) {

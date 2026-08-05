@@ -11,15 +11,11 @@ import static ui.EscapeSequences.*;
 
 public class GameplayUI extends ReplUI {
 
-//    Help	Displays text informing the user what actions they can take.
-//    Redraw Chess Board	Redraws the chess board upon the user’s request.
-//    Leave	Removes the user from the game (whether they are playing or observing the game). The client transitions back to the Post-Login UI.
-//    Make Move	Allow the user to input what move they want to make. The board is updated to reflect the result of the move, and the board automatically updates on all clients involved in the game.
-//    Resign	Prompts the user to confirm they want to resign. If they do, the user forfeits the game and the game is over. Does not cause the user to leave the game.
-//    Highlight Legal Moves	Allows the user to input the piece for which they want to highlight legal moves. The selected piece’s current square and all squares it can legally move to are highlighted. This is a local operation and has no effect on remote users’ screens.
+    private final int gameID;
 
-    public GameplayUI(String authToken) {
+    public GameplayUI(String authToken, int gameID) {
         this.authToken = authToken;
+        this.gameID = gameID;
     }
 
     @Override
@@ -29,7 +25,7 @@ public class GameplayUI extends ReplUI {
 
     @Override
     public <T> String eval(String input, T connector) {
-        ServerFacade serverFacade = (ServerFacade) connector;
+        WSFacade wsFacade = (WSFacade) connector;
         input = input.strip();
         if (input.equalsIgnoreCase("redraw")) {
             return "game redrawn";
