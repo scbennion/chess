@@ -23,8 +23,7 @@ public class ClientMain implements ServerMessageObserver {
         new ClientMain(TEST_PORT);
 
         System.out.print(SET_TEXT_COLOR_WHITE);
-        ReplUI ui = new PreLoginUI();
-        Object facade = serverFacade;
+        ReplUI ui = new PreLoginUI(serverFacade);
         System.out.println("♕ Welcome to 240 Chess Client. Type HELP to get started ♕\n");
         Scanner scanner = new Scanner(System.in);
 
@@ -32,19 +31,16 @@ public class ClientMain implements ServerMessageObserver {
         while (!eval.equals("quit")) {
             System.out.print(ui.prompt());
             String read = scanner.nextLine();
-            eval = ui.eval(read, facade);
+            eval = ui.eval(read);
             System.out.print(ui.print());
 
-            if (eval.equals("registered") || eval.equals("logged in") || eval.equals("game left")) {
-                ui = new PostLoginUI(ui.getAuthToken());
-                facade = serverFacade;
-            } else if (eval.equals("logged out")) {
-                ui = new PreLoginUI();
-                facade = serverFacade;
-            } else if (eval.equals("game joined") || eval.equals("game observed")) {
-                assert ui instanceof PostLoginUI;
-                ui = new GameplayUI(ui.getAuthToken(), ((PostLoginUI) ui).getConnectedGameID());
-                facade = wsFacade;
+            switch (eval) {
+                case "registered", "logged in", "game left" -> ui = new PostLoginUI(ui.getAuthToken(), serverFacade);
+                case "logged out" -> ui = new PreLoginUI(serverFacade);
+                case "game joined", "game observed" -> {
+                    assert ui instanceof PostLoginUI;
+                    ui = new GameplayUI(ui.getAuthToken(), ((PostLoginUI) ui).getConnectedGameID(), wsFacade);
+                }
             }
         }
         System.exit(0);

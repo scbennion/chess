@@ -5,20 +5,25 @@ import client.ServerFacade;
 
 public class PreLoginUI extends ReplUI {
 
+    private ServerFacade serverFacade;
+
+    public PreLoginUI(ServerFacade serverFacade) {
+        this.serverFacade = serverFacade;
+    }
+
     @Override
     public String prompt() {
         return "[LOGGED OUT] >>> ";
     }
 
     @Override
-    public <T> String eval(String input, T connector) {
-        ServerFacade serverFacade = (ServerFacade) connector;
+    public String eval(String input) {
         input = input.strip();
         if (input.toLowerCase().startsWith("register")) {
-            boolean successfulRegister = register(input, serverFacade);
+            boolean successfulRegister = register(input);
             return successfulRegister ? "registered" : "failed";
         } else if (input.toLowerCase().startsWith("login")) {
-            boolean successfulLogin = login(input, serverFacade);
+            boolean successfulLogin = login(input);
             return successfulLogin ? "logged in" : "failed";
         } else if (input.equalsIgnoreCase("quit")) {
             quit();
@@ -39,7 +44,7 @@ public class PreLoginUI extends ReplUI {
                 """;
     }
 
-    private boolean login(String input, ServerFacade serverFacade) {
+    private boolean login(String input) {
         try {
             String[] splitted = input.split(WHITE_SPACE);
             authToken = serverFacade.login(new UserData(splitted[1], splitted[2], null)).authToken();
@@ -52,7 +57,7 @@ public class PreLoginUI extends ReplUI {
         }
     }
 
-    private boolean register(String input, ServerFacade serverFacade) {
+    private boolean register(String input) {
         try {
             String[] splitted = input.split(WHITE_SPACE);
             authToken = serverFacade.register(new UserData(splitted[1], splitted[2], splitted[3])).authToken();

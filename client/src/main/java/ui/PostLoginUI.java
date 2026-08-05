@@ -1,9 +1,7 @@
 package ui;
 
-import chess.ChessBoard;
 import chess.ChessGame;
 import dataaccess.exceptions.DataAccessException;
-import dataaccess.exceptions.InvalidGameIDException;
 import model.GameData;
 import client.ServerFacade;
 
@@ -15,14 +13,13 @@ import static ui.EscapeSequences.SET_TEXT_ITALIC;
 
 public class PostLoginUI extends ReplUI {
 
-    //gamePlayUI to be removed once observe game is fully implemented
-    private GameplayUI gamePlayUI;
     private Map<Integer, Integer> gameIDTracker = new HashMap<>();
     private int connectedGameID = -1;
+    private ServerFacade serverFacade;
 
-    public PostLoginUI(String authToken) {
+    public PostLoginUI(String authToken, ServerFacade serverFacade) {
         this.authToken = authToken;
-        gamePlayUI = new GameplayUI(authToken);
+        this.serverFacade = serverFacade;
     }
 
     @Override
@@ -31,14 +28,13 @@ public class PostLoginUI extends ReplUI {
     }
 
     @Override
-    public <T> String eval(String input, T connector) {
-        ServerFacade serverFacade = (ServerFacade) connector;
+    public String eval(String input) {
         input = input.strip();
         if (input.toLowerCase().startsWith("create")) {
-            boolean successfulCreation = createGame(input, serverFacade);
+            boolean successfulCreation = createGame(input);
             return successfulCreation ? "game created" : "failed";
         } else if (input.toLowerCase().startsWith("join")) {
-            boolean successfulJoin = joinGame(input, serverFacade);
+            boolean successfulJoin = joinGame(input);
             return successfulJoin ? "game joined" : "failed";
         } else if (input.toLowerCase().startsWith("observe")) {
             boolean successfulObserve = observeGame(input, serverFacade);
@@ -62,7 +58,7 @@ public class PostLoginUI extends ReplUI {
         return connectedGameID;
     }
 
-    private boolean createGame(String input, ServerFacade serverFacade) {
+    private boolean createGame(String input) {
         try {
             String gameName = input.split(WHITE_SPACE)[1];
             serverFacade.createGame(authToken, gameName);
@@ -80,11 +76,10 @@ public class PostLoginUI extends ReplUI {
     /**
      * attempts to join a game using uiGameID and player color
      *
-     * @param input        user join game input
-     * @param serverFacade Http Request Controller
+     * @param input user join game input
      * @return stored gameID or -1 if unsuccessful
      */
-    private boolean joinGame(String input, ServerFacade serverFacade) {
+    private boolean joinGame(String input) {
         try {
             String[] splitted = input.split(WHITE_SPACE);
             int uiGameID = Integer.parseInt(splitted[1]);
@@ -95,35 +90,24 @@ public class PostLoginUI extends ReplUI {
             }
             connectedGameID = gameIDTracker.get(uiGameID);
             serverFacade.joinGame(authToken, color.toUpperCase(), connectedGameID);
-            ChessGame.TeamColor orientation = color.equalsIgnoreCase("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-            output = "game joined and ready to play\n" + gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), orientation);
+//            ChessGame.TeamColor orientation = color.equalsIgnoreCase("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
+            output = "game joined and ready to play\n";// + gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), orientation);
             return true;
         } catch (DataAccessException e) {
             output = "unable to join game. Make sure your game ID is correct and the player color is available\n";
             return false;
         } catch (RuntimeException e) {
+            //note: you should not be able to join a game until the temporary uiGameID is created using listGames
             output = "unable to join game. Make sure your game ID is an integer and you included your side color.\n";
             return false;
         }
-    }
-
-    private ChessBoard getSpecificBoard(int uiGameID, ServerFacade serverFacade) throws DataAccessException {
-        //slightly inefficient because it gets all the games in the database
-        //future implementations should be more specific for better performance
-        GameData[] games = serverFacade.listGames(authToken);
-        for (GameData gameData : games) {
-            if (gameData.gameID() == gameIDTracker.get(uiGameID)) {
-                return gameData.game().getBoard();
-            }
-        }
-        throw new InvalidGameIDException();
     }
 
     private boolean observeGame(String input, ServerFacade serverFacade) {
         try {
             int uiGameID = Integer.parseInt(input.split(WHITE_SPACE)[1]);
             connectedGameID = gameIDTracker.get(uiGameID);
-            output = gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), ChessGame.TeamColor.WHITE);
+            output = "observed"; //gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), ChessGame.TeamColor.WHITE);
             return true;
         } catch (Exception e) {
             output = "unable to observe game. Make sure your game ID is correct.\n";

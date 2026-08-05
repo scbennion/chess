@@ -4,7 +4,6 @@ import chess.ChessBoard;
 import chess.ChessGame;
 import chess.ChessPiece;
 import chess.ChessPosition;
-import client.ServerFacade;
 import client.WSFacade;
 
 import static ui.EscapeSequences.*;
@@ -12,10 +11,12 @@ import static ui.EscapeSequences.*;
 public class GameplayUI extends ReplUI {
 
     private final int gameID;
+    private WSFacade wsFacade;
 
-    public GameplayUI(String authToken, int gameID) {
+    public GameplayUI(String authToken, int gameID, WSFacade wsFacade) {
         this.authToken = authToken;
         this.gameID = gameID;
+        this.wsFacade = wsFacade;
     }
 
     @Override
@@ -24,16 +25,15 @@ public class GameplayUI extends ReplUI {
     }
 
     @Override
-    public <T> String eval(String input, T connector) {
-        WSFacade wsFacade = (WSFacade) connector;
+    public String eval(String input) {
         input = input.strip();
         if (input.equalsIgnoreCase("redraw")) {
             return "game redrawn";
         } else if (input.equalsIgnoreCase("leave")) {
             return "game left";
-        } else if (input.toLowerCase().startsWith("MAKE_MOVE")) {
+        } else if (input.toLowerCase().startsWith("make_move")) {
             return "move made";
-        } else if (input.toLowerCase().startsWith("HIGHLIGHT")) {
+        } else if (input.toLowerCase().startsWith("highlight")) {
             return "highlighted";
         } else {
             help();

@@ -1,7 +1,5 @@
 package ui;
 
-import client.ServerFacade;
-
 public abstract class ReplUI {
     String output = "";
     String authToken = null;
@@ -9,7 +7,7 @@ public abstract class ReplUI {
 
     public abstract String prompt();
 
-    public abstract <T> String eval(String input, T connector);
+    public abstract String eval(String input);
 
     public String print() {
         return output;
