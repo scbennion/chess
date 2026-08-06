@@ -1,6 +1,9 @@
 package server;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
+import dataaccess.GameDAO;
+import dataaccess.exceptions.DataAccessException;
 import org.eclipse.jetty.websocket.api.Session;
 
 import io.javalin.websocket.WsCloseContext;
@@ -11,12 +14,20 @@ import io.javalin.websocket.WsMessageContext;
 import io.javalin.websocket.WsMessageHandler;
 import org.jetbrains.annotations.NotNull;
 import websocket.commands.UserGameCommand;
+import websocket.messages.ServerMessage;
+
+import java.io.IOException;
 
 
 public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsCloseHandler {
 
-    private final ConnectionManager connections = new ConnectionManager();
+    private final ConnectionManager connectionManager = new ConnectionManager();
     private final Gson serializer = new Gson();
+    GameDAO gameDAO;
+
+    public WebSocketHandler(GameDAO gameDAO) {
+        this.gameDAO = gameDAO;
+    }
 
     @Override
     public void handleConnect(WsConnectContext ctx) {
@@ -34,7 +45,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     wsMessageContext.message(), UserGameCommand.class);
             gameId = command.getGameID();
             String username = getUsername(command.getAuthToken());
-            saveSession(gameId, session);
 
             switch (command.getCommandType()) {
                 case CONNECT -> connect(session, username, (UserGameCommand) command);
@@ -45,7 +55,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             }
         } catch (Exception ex) {
             ex.printStackTrace();
-            sendMessage(session, gameId, "Error: " + ex.getMessage());
+            notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, "Error: " + ex.getMessage()));
         }
     }
 
@@ -58,16 +68,31 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         return "username placeholder";
     }
 
-    private void saveSession(int gameID, Session session) {
-        System.out.println("Session saved");
+    private void notifySession(Session session, ServerMessage serverMessage) {
+        try {
+            session.getRemote().sendString(serializer.toJson(serverMessage));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    private void sendMessage(Session session, int gameID, String msg) throws Exception {
-        throw new Exception(msg);
-    }
 
     private void connect(Session session, String username, UserGameCommand command) {
-        System.out.println("Connected");
+        try {
+            connectionManager.add(command.getGameID(), session);
+            ChessGame game = null;
+            game = gameDAO.getGame(command.getGameID()).game();
+            ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
+            notifySession(session, serverMessage);
+            String serializedServerMessage = serializer.toJson(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, username + "has connected to the game"));
+            connectionManager.broadcast(command.getGameID(), session, serializedServerMessage);
+        } catch (DataAccessException e) {
+            String msg = "Error: Game does not exist";
+            notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
+        } catch (IOException e) {
+            String msg = "Error: issues broadcasting" + e.getMessage();
+            notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
+        }
     }
 
     private void makeMove(Session session, String username, UserGameCommand command) {

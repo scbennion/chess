@@ -16,7 +16,7 @@ public class ConnectionManager {
             return sessions;
         });
 
-        connections.computeIfAbsent(gameID, k -> {
+        connections.computeIfAbsent(gameID, (Integer k) -> {
             HashSet<Session> set = new HashSet<Session>();
             set.add(session);
             return set;
@@ -27,11 +27,11 @@ public class ConnectionManager {
         connections.remove(gameID);
     }
 
-    public void broadcast(int gameID, Session excludeSession, String notification) throws IOException {
+    public void broadcast(int gameID, Session excludeSession, String serializedServerMessage) throws IOException {
         for (Session s : connections.get(gameID)) {
             if (s.isOpen()) {
                 if (!s.equals(excludeSession)) {
-                    s.getRemote().sendString(notification);
+                    s.getRemote().sendString(serializedServerMessage);
                 }
             }
         }

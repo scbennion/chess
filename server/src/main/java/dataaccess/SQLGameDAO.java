@@ -120,6 +120,13 @@ public class SQLGameDAO implements GameDAO {
         }
     }
 
+    /**
+     * as the piece caches are transient, they are deleted during serialization
+     * and need to be rebuilt
+     *
+     * @param gameSerialized
+     * @return ChessGame
+     */
     private ChessGame deserializeChessGame(String gameSerialized) {
         ChessGame game = serializer.fromJson(gameSerialized, ChessGame.class);
         game.getBoard().buildPieceCaches();
