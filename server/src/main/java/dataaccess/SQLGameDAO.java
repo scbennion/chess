@@ -28,6 +28,7 @@ public class SQLGameDAO implements GameDAO {
     @Override
     public GameData createGame(String gameName) throws DataAccessException {
         ChessGame game = new ChessGame();
+        game.getBoard().resetBoard();
         int gameID = -1;
         try (Connection conn = DatabaseManager.getConnection()) {
             String statement = "INSERT INTO gameTable (gameName, serializedChessGame) VALUES (?,?);";
