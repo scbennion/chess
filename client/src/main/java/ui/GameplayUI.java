@@ -1,9 +1,6 @@
 package ui;
 
-import chess.ChessBoard;
-import chess.ChessGame;
-import chess.ChessPiece;
-import chess.ChessPosition;
+import chess.*;
 import client.WSFacade;
 
 import static ui.EscapeSequences.*;
@@ -14,6 +11,8 @@ public class GameplayUI extends ReplUI {
     private WSFacade wsFacade;
     private final String color;
     private ChessGame game;
+    static final String CHESS_ALPHABET = "abcdefgh";
+    static final String CHESS_NUMBERS = "12345678";
 
     public GameplayUI(String authToken, int gameID, String color, WSFacade wsFacade) {
         this.authToken = authToken;
@@ -41,7 +40,7 @@ public class GameplayUI extends ReplUI {
             leaveGame();
             return "game left";
         } else if (input.toLowerCase().startsWith("make_move")) {
-            return "move made";
+            return makeMove(input) ? "move made" : "failed";
         } else if (input.toLowerCase().startsWith("highlight")) {
             return "highlighted";
         } else {
@@ -66,6 +65,37 @@ public class GameplayUI extends ReplUI {
             throw new RuntimeException(e);
         }
         output = "you have left the game\n";
+    }
+
+    private boolean makeMove(String input) {
+        try {
+            String[] splitted = input.split(WHITE_SPACE);
+            if (!checkPosFormatting(splitted[1]) || !checkPosFormatting(splitted[2])) {
+                output = "make sure your positions are formatted <letter><number> (ex: a1)\n";
+                return false;
+            }
+            ChessPiece p = game.getBoard().getPiece(convertUIPos(splitted[1]));
+            if (p == null) {
+                output = "no piece at specified game position\n";
+                return false;
+            }
+            System.out.println("Chess Piece: " + p); //for debugging
+            ChessMove move = new ChessMove(convertUIPos(splitted[1]), convertUIPos(splitted[2]), p.getPieceType());
+            wsFacade.makeMove(authToken, gameID, move);
+            output = "move sent to server\n";
+            return true;
+
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private boolean checkPosFormatting(String uiPos) {
+        return (CHESS_ALPHABET.contains(uiPos.substring(0, 1)) && CHESS_NUMBERS.contains(uiPos.substring(1, 2)) && uiPos.length() == 2);
+    }
+
+    private ChessPosition convertUIPos(String uiPos) {
+        return new ChessPosition(CHESS_ALPHABET.indexOf(uiPos.charAt(0)) + 1, Integer.parseInt(uiPos.substring(1)));
     }
 
     private void help() {

@@ -1,5 +1,6 @@
 package client;
 
+import chess.ChessMove;
 import com.google.gson.Gson;
 import jakarta.websocket.ContainerProvider;
 import jakarta.websocket.Endpoint;
@@ -43,6 +44,16 @@ public class WSFacade extends Endpoint {
             send(new Gson().toJson(command));
         } catch (IOException ex) {
             throw new Exception(ex.getMessage());
+        }
+    }
+
+    public void makeMove(String authToken, int gameID, ChessMove move) {
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+            command.setMove(move);
+            send(new Gson().toJson(command));
+        } catch (IOException e) {
+            throw new RuntimeException(e.getMessage());
         }
     }
 
