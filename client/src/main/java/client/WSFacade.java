@@ -46,6 +46,15 @@ public class WSFacade extends Endpoint {
         }
     }
 
+    public void leaveGame(String authToken, int gameID) throws Exception {
+        try {
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.LEAVE, authToken, gameID);
+            send(new Gson().toJson(command));
+        } catch (IOException ex) {
+            throw new Exception(ex.getMessage());
+        }
+    }
+
     private void handleMessage(String messageString) {
         try {
             ServerMessage message = serializer.fromJson(messageString, ServerMessage.class);

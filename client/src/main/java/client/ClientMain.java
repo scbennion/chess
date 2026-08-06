@@ -62,10 +62,10 @@ public class ClientMain implements ServerMessageObserver {
                 System.out.print("\n" + gameplayUI.redraw());
                 System.out.print(ui.prompt());
             }
-            case ERROR -> System.out.print(SET_TEXT_COLOR_RED + serverMessage.getError() + RESET_TEXT_COLOR
+            case ERROR -> System.out.print(SET_TEXT_COLOR_RED + serverMessage.getError() + SET_TEXT_COLOR_WHITE
                     + "\n" + ui.prompt());
             case NOTIFICATION ->
-                    System.out.print(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + RESET_TEXT_COLOR + "\n");
+                    System.out.print(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + SET_TEXT_COLOR_WHITE + "\n");
         }
     }
 }

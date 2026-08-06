@@ -34,6 +34,10 @@ public class ConnectionManager {
     }
 
     public void broadcast(int gameID, Session excludeSession, String serializedServerMessage) throws IOException {
+        if (!connections.containsKey(gameID)) {
+            return;
+        }
+
         for (Session s : connections.get(gameID)) {
             if (s.isOpen()) {
                 if (!s.equals(excludeSession)) {

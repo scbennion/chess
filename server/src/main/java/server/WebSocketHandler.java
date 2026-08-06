@@ -78,7 +78,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-
     private void connect(Session session, String username, UserGameCommand command) {
         try {
             connectionManager.add(command.getGameID(), session);
@@ -107,7 +106,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void leaveGame(Session session, String username, UserGameCommand command) {
-        System.out.println("Game left");
+        connectionManager.remove(command.getGameID(), session);
+        String broadcastMessage = username + " has left the game";
+        String serializedServerMessage = serializer.toJson(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, broadcastMessage));
+        try {
+            connectionManager.broadcast(command.getGameID(), session, serializedServerMessage);
+        } catch (IOException e) {
+            String msg = "Error: issues broadcasting" + e.getMessage();
+            notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
+        }
     }
 
     private void resign(Session session, String username, UserGameCommand command) {

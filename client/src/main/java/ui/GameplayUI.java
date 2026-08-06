@@ -38,6 +38,7 @@ public class GameplayUI extends ReplUI {
             redraw();
             return "game redrawn";
         } else if (input.equalsIgnoreCase("leave")) {
+            leaveGame();
             return "game left";
         } else if (input.toLowerCase().startsWith("make_move")) {
             return "move made";
@@ -56,6 +57,15 @@ public class GameplayUI extends ReplUI {
             output = drawBoard(game.getBoard(), ChessGame.TeamColor.valueOf(color.toUpperCase()));
         }
         return output;
+    }
+
+    private void leaveGame() {
+        try {
+            wsFacade.leaveGame(authToken, gameID);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        output = "you have left the game\n";
     }
 
     private void help() {
