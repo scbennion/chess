@@ -1,6 +1,7 @@
 package server;
 
 import chess.ChessGame;
+import chess.ChessPosition;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.AuthDAO;
@@ -32,6 +33,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     GameDAO gameDAO;
     AuthDAO authDAO;
     UserDAO userDAO;
+    static final String CHESS_ALPHABET = "abcdefgh";
 
     public WebSocketHandler(GameDAO gameDAO, AuthDAO authDAO, UserDAO userDAO) {
         this.gameDAO = gameDAO;
@@ -111,8 +113,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                     ChessGame game = gameData.game();
                     game.makeMove(command.getMove());
                     notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game));
-                    String broadcastMessage = username + " has moved " + command.getMove().getStartPosition() + " to " + command.getMove().getEndPosition();
+                    String broadcastMessage = username + " has moved " + convertToUI(command.getMove().getStartPosition())
+                            + " to " + convertToUI(command.getMove().getEndPosition());
                     broadcastNotification(broadcastMessage, command.getGameID(), session);
+                    broadcastLoadGame(game, command.getGameID(), session);
                     gameDAO.updateGameData(gameData);
                 } catch (InvalidMoveException e) {
                     String msg = "Error: Invalid Move";
@@ -130,7 +134,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             String serializedBroadcastMessage = serializer.toJson(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg));
             connectionManager.broadcast(gameID, session, serializedBroadcastMessage);
         } catch (IOException e) {
-            String errorMsg = "Error: issues broadcasting" + e.getMessage();
+            String errorMsg = "Error: issues broadcasting\n" + e.getMessage();
+            notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMsg));
+        }
+    }
+
+    private void broadcastLoadGame(ChessGame game, int gameID, Session session) {
+        try {
+            String serializedBroadcastMessage = serializer.toJson(new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game));
+            connectionManager.broadcast(gameID, session, serializedBroadcastMessage);
+        } catch (IOException e) {
+            String errorMsg = "Error: issues broadcasting\n" + e.getMessage();
             notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, errorMsg));
         }
     }
@@ -152,6 +166,10 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
             notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
             return null;
         }
+    }
+
+    private String convertToUI(ChessPosition pos) {
+        return CHESS_ALPHABET.charAt(pos.getColumn()) + String.valueOf(pos.getRow());
     }
 
     private void leaveGame(Session session, String username, UserGameCommand command) {

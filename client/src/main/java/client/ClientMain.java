@@ -66,7 +66,7 @@ public class ClientMain implements ServerMessageObserver {
             case ERROR -> System.out.print(SET_TEXT_COLOR_RED + serverMessage.getError() + SET_TEXT_COLOR_WHITE
                     + "\n" + ui.prompt());
             case NOTIFICATION ->
-                    System.out.print(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + SET_TEXT_COLOR_WHITE + "\n");
+                    System.out.print(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + SET_TEXT_COLOR_WHITE + "\n" + ui.prompt());
         }
     }
 }
