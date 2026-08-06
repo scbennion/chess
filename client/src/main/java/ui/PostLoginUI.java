@@ -1,6 +1,7 @@
 package ui;
 
 import chess.ChessGame;
+import client.WSFacade;
 import dataaccess.exceptions.DataAccessException;
 import model.GameData;
 import client.ServerFacade;
@@ -13,13 +14,15 @@ import static ui.EscapeSequences.SET_TEXT_ITALIC;
 
 public class PostLoginUI extends ReplUI {
 
-    private Map<Integer, Integer> gameIDTracker = new HashMap<>();
+    private final Map<Integer, Integer> gameIDTracker = new HashMap<>();
     private int connectedGameID = -1;
-    private ServerFacade serverFacade;
+    private final ServerFacade serverFacade;
+    private final WSFacade wsFacade;
 
-    public PostLoginUI(String authToken, ServerFacade serverFacade) {
+    public PostLoginUI(String authToken, ServerFacade serverFacade, WSFacade wsFacade) {
         this.authToken = authToken;
         this.serverFacade = serverFacade;
+        this.wsFacade = wsFacade;
     }
 
     @Override
@@ -75,6 +78,8 @@ public class PostLoginUI extends ReplUI {
 
     /**
      * attempts to join a game using uiGameID and player color
+     * Calls ServerFacade to join the game
+     * Calls WSFacade to connect to the game with a WebSocket
      *
      * @param input user join game input
      * @return stored gameID or -1 if unsuccessful
@@ -90,13 +95,13 @@ public class PostLoginUI extends ReplUI {
             }
             connectedGameID = gameIDTracker.get(uiGameID);
             serverFacade.joinGame(authToken, color.toUpperCase(), connectedGameID);
-//            ChessGame.TeamColor orientation = color.equalsIgnoreCase("WHITE") ? ChessGame.TeamColor.WHITE : ChessGame.TeamColor.BLACK;
-            output = "game joined and ready to play\n";// + gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), orientation);
+            wsFacade.connect(authToken, connectedGameID, color.toUpperCase());
+            output = "game joined and ready to play\n";
             return true;
         } catch (DataAccessException e) {
             output = "unable to join game. Make sure your game ID is correct and the player color is available\n";
             return false;
-        } catch (RuntimeException e) {
+        } catch (Exception e) {
             //note: you should not be able to join a game until the temporary uiGameID is created using listGames
             output = "unable to join game. Make sure your game ID is an integer and you included your side color.\n";
             return false;

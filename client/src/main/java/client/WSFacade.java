@@ -36,9 +36,10 @@ public class WSFacade extends Endpoint {
         });
     }
 
-    public void connect(String authToken, int gameID) throws Exception {
+    public void connect(String authToken, int gameID, String color) throws Exception {
         try {
             UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+            command.setColor(color);
             send(new Gson().toJson(command));
         } catch (IOException ex) {
             throw new Exception(ex.getMessage());

@@ -36,13 +36,13 @@ public class ClientMain implements ServerMessageObserver {
             System.out.print(ui.print());
 
             switch (eval) {
-                case "registered", "logged in", "game left" -> ui = new PostLoginUI(ui.getAuthToken(), serverFacade);
+                case "registered", "logged in", "game left" ->
+                        ui = new PostLoginUI(ui.getAuthToken(), serverFacade, wsFacade);
                 case "logged out" -> ui = new PreLoginUI(serverFacade);
                 case "game joined", "game observed" -> {
                     assert ui instanceof PostLoginUI;
                     int gameID = ((PostLoginUI) ui).getConnectedGameID();
                     ui = new GameplayUI(ui.getAuthToken(), gameID, wsFacade);
-                    wsFacade.connect(ui.getAuthToken(), gameID);
                 }
             }
         }

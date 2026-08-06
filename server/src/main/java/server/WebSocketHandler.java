@@ -82,10 +82,16 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void connect(Session session, String username, UserGameCommand command) {
         try {
             connectionManager.add(command.getGameID(), session);
+
             ChessGame game = gameDAO.getGame(command.getGameID()).game();
             ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
             notifySession(session, serverMessage);
-            String serializedServerMessage = serializer.toJson(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, username + "has connected to the game"));
+
+            String broadcastMessage = username + " has connected to the game as an observer";
+            if (command.getColor() != null) {
+                broadcastMessage = username + " has connected to the game as " + command.getColor().toLowerCase();
+            }
+            String serializedServerMessage = serializer.toJson(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, broadcastMessage));
             connectionManager.broadcast(command.getGameID(), session, serializedServerMessage);
         } catch (DataAccessException e) {
             String msg = "Error: Game does not exist";
