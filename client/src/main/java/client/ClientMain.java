@@ -53,15 +53,11 @@ public class ClientMain implements ServerMessageObserver {
     @Override
     public void notify(ServerMessage serverMessage) {
         switch (serverMessage.getServerMessageType()) {
-            case LOAD_GAME -> {
-                System.out.println(((GameplayUI) ui).drawBoard(serverMessage.getGame().getBoard(), ChessGame.TeamColor.WHITE));
-            }
-            case ERROR -> {
-                System.out.println(SET_TEXT_COLOR_RED + serverMessage.getMessage() + RESET_TEXT_COLOR);
-            }
-            case NOTIFICATION -> {
-                System.out.println(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + RESET_TEXT_COLOR);
-            }
+            case LOAD_GAME ->
+                    System.out.println(((GameplayUI) ui).drawBoard(serverMessage.getGame().getBoard(), ChessGame.TeamColor.WHITE));
+            case ERROR -> System.out.println(SET_TEXT_COLOR_RED + serverMessage.getError() + RESET_TEXT_COLOR);
+            case NOTIFICATION ->
+                    System.out.println(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + RESET_TEXT_COLOR);
         }
     }
 }

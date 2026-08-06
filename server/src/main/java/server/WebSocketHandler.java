@@ -2,8 +2,12 @@ package server;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
+import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
+import dataaccess.UserDAO;
 import dataaccess.exceptions.DataAccessException;
+import dataaccess.exceptions.InvalidAuthTokenException;
+import model.AuthData;
 import org.eclipse.jetty.websocket.api.Session;
 
 import io.javalin.websocket.WsCloseContext;
@@ -24,9 +28,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private final ConnectionManager connectionManager = new ConnectionManager();
     private final Gson serializer = new Gson();
     GameDAO gameDAO;
+    AuthDAO authDAO;
+    UserDAO userDAO;
 
-    public WebSocketHandler(GameDAO gameDAO) {
+    public WebSocketHandler(GameDAO gameDAO, AuthDAO authDAO, UserDAO userDAO) {
         this.gameDAO = gameDAO;
+        this.authDAO = authDAO;
+        this.userDAO = userDAO;
     }
 
     @Override
@@ -36,21 +44,19 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     @Override
-    public void handleMessage(WsMessageContext wsMessageContext) throws Exception {
-        int gameId = -1;
+    public void handleMessage(WsMessageContext wsMessageContext) {
         Session session = wsMessageContext.session;
 
         try {
             UserGameCommand command = serializer.fromJson(
                     wsMessageContext.message(), UserGameCommand.class);
-            gameId = command.getGameID();
             String username = getUsername(command.getAuthToken());
 
             switch (command.getCommandType()) {
-                case CONNECT -> connect(session, username, (UserGameCommand) command);
-                case MAKE_MOVE -> makeMove(session, username, (UserGameCommand) command);
-                case LEAVE -> leaveGame(session, username, (UserGameCommand) command);
-                case RESIGN -> resign(session, username, (UserGameCommand) command);
+                case CONNECT -> connect(session, username, command);
+                case MAKE_MOVE -> makeMove(session, username, command);
+                case LEAVE -> leaveGame(session, username, command);
+                case RESIGN -> resign(session, username, command);
                 default -> System.out.println("invalid move command");
             }
         } catch (Exception ex) {
@@ -62,10 +68,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     @Override
     public void handleClose(@NotNull WsCloseContext ctx) {
         System.out.println("Websocket closed");
-    }
-
-    private String getUsername(String authToken) {
-        return "username placeholder";
     }
 
     private void notifySession(Session session, ServerMessage serverMessage) {
@@ -80,8 +82,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void connect(Session session, String username, UserGameCommand command) {
         try {
             connectionManager.add(command.getGameID(), session);
-            ChessGame game = null;
-            game = gameDAO.getGame(command.getGameID()).game();
+            ChessGame game = gameDAO.getGame(command.getGameID()).game();
             ServerMessage serverMessage = new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game);
             notifySession(session, serverMessage);
             String serializedServerMessage = serializer.toJson(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, username + "has connected to the game"));
@@ -105,6 +106,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void resign(Session session, String username, UserGameCommand command) {
         System.out.println("Resigned");
+    }
+
+    private String getUsername(String authToken) throws DataAccessException {
+        AuthData authData = authDAO.getAuth(authToken);
+        if (authData == null) {
+            throw new InvalidAuthTokenException();
+        }
+        return authData.username();
     }
 
 }

@@ -14,6 +14,7 @@ public class ServerMessage {
     ServerMessageType serverMessageType;
     ChessGame game = null;
     String message = null;
+    String errorMessage = null;
 
     public enum ServerMessageType {
         LOAD_GAME,
@@ -32,7 +33,11 @@ public class ServerMessage {
 
     public ServerMessage(ServerMessageType type, String message) {
         this.serverMessageType = type;
-        this.message = message;
+        assert (type != ServerMessageType.LOAD_GAME);
+        switch (type) {
+            case ERROR -> this.errorMessage = message;
+            case NOTIFICATION -> this.message = message;
+        }
     }
 
     public ServerMessageType getServerMessageType() {
@@ -45,6 +50,10 @@ public class ServerMessage {
 
     public String getMessage() {
         return this.message;
+    }
+
+    public String getError() {
+        return this.errorMessage;
     }
 
     @Override
