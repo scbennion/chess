@@ -24,7 +24,13 @@ public class ConnectionManager {
     }
 
     public void remove(int gameID, Session session) {
-        connections.remove(gameID);
+        connections.computeIfPresent(gameID, (k, sessions) -> {
+            sessions.remove(session);
+            return sessions;
+        });
+        if (connections.get(gameID).isEmpty()) {
+            connections.remove(gameID);
+        }
     }
 
     public void broadcast(int gameID, Session excludeSession, String serializedServerMessage) throws IOException {
