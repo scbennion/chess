@@ -13,6 +13,10 @@ public abstract class ReplUI {
         return output;
     }
 
+    public void addStringToOutput(String str) {
+        output = output + str;
+    }
+
     public String getAuthToken() {
         return authToken;
     }

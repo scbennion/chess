@@ -14,6 +14,7 @@ public class ClientMain implements ServerMessageObserver {
     private static ServerFacade serverFacade;
     private static WSFacade wsFacade;
     private static ReplUI ui = null;
+    private static ChessGame game = null;
 
     public ClientMain(int port) throws Exception {
         serverFacade = new ServerFacade(port);
@@ -42,7 +43,7 @@ public class ClientMain implements ServerMessageObserver {
                 case "game joined", "game observed" -> {
                     assert ui instanceof PostLoginUI;
                     int gameID = ((PostLoginUI) ui).getConnectedGameID();
-                    ui = new GameplayUI(ui.getAuthToken(), gameID, wsFacade);
+                    ui = new GameplayUI(ui.getAuthToken(), gameID, ((PostLoginUI) ui).getColor(), wsFacade);
                 }
             }
         }
@@ -53,11 +54,18 @@ public class ClientMain implements ServerMessageObserver {
     @Override
     public void notify(ServerMessage serverMessage) {
         switch (serverMessage.getServerMessageType()) {
-            case LOAD_GAME ->
-                    System.out.println(((GameplayUI) ui).drawBoard(serverMessage.getGame().getBoard(), ChessGame.TeamColor.WHITE));
-            case ERROR -> System.out.println(SET_TEXT_COLOR_RED + serverMessage.getError() + RESET_TEXT_COLOR);
+            case LOAD_GAME -> {
+                game = serverMessage.getGame();
+                assert (ui instanceof GameplayUI);
+                GameplayUI gameplayUI = (GameplayUI) ui;
+                gameplayUI.setGame(game);
+                System.out.print("\n" + gameplayUI.redraw());
+                System.out.print(ui.prompt());
+            }
+            case ERROR -> System.out.print(SET_TEXT_COLOR_RED + serverMessage.getError() + RESET_TEXT_COLOR
+                    + "\n" + ui.prompt());
             case NOTIFICATION ->
-                    System.out.println(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + RESET_TEXT_COLOR);
+                    System.out.print(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + RESET_TEXT_COLOR + "\n");
         }
     }
 }

@@ -12,11 +12,18 @@ public class GameplayUI extends ReplUI {
 
     private final int gameID;
     private WSFacade wsFacade;
+    private final String color;
+    private ChessGame game;
 
-    public GameplayUI(String authToken, int gameID, WSFacade wsFacade) {
+    public GameplayUI(String authToken, int gameID, String color, WSFacade wsFacade) {
         this.authToken = authToken;
         this.gameID = gameID;
         this.wsFacade = wsFacade;
+        this.color = color;
+    }
+
+    public void setGame(ChessGame game) {
+        this.game = game;
     }
 
     @Override
@@ -28,6 +35,7 @@ public class GameplayUI extends ReplUI {
     public String eval(String input) {
         input = input.strip();
         if (input.equalsIgnoreCase("redraw")) {
+            redraw();
             return "game redrawn";
         } else if (input.equalsIgnoreCase("leave")) {
             return "game left";
@@ -41,6 +49,15 @@ public class GameplayUI extends ReplUI {
         }
     }
 
+    public String redraw() {
+        if (color == null) {
+            output = drawBoard(game.getBoard(), null);
+        } else {
+            output = drawBoard(game.getBoard(), ChessGame.TeamColor.valueOf(color.toUpperCase()));
+        }
+        return output;
+    }
+
     private void help() {
         output = String.format("""
                 HELP\t%1$slist possible game commands%2$s
@@ -51,7 +68,7 @@ public class GameplayUI extends ReplUI {
                 """, SET_TEXT_ITALIC, RESET_TEXT_ITALIC);
     }
 
-    public String drawBoard(ChessBoard board, ChessGame.TeamColor orientation) {
+    private String drawBoard(ChessBoard board, ChessGame.TeamColor orientation) {
         StringBuilder output = new StringBuilder();
         var whitePieceMap = board.getSidePieces(ChessGame.TeamColor.WHITE);
         var blackPieceMap = board.getSidePieces(ChessGame.TeamColor.BLACK);
@@ -79,7 +96,7 @@ public class GameplayUI extends ReplUI {
             output.append(rowIndicator).append("\n");
         }
         output.append(colIndicator);
-        output.append(SET_BG_COLOR_BLACK).append(SET_TEXT_COLOR_WHITE);
+        output.append(RESET_BG_COLOR).append(SET_TEXT_COLOR_WHITE);
         return output.toString();
     }
 

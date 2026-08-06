@@ -18,6 +18,7 @@ public class PostLoginUI extends ReplUI {
     private int connectedGameID = -1;
     private final ServerFacade serverFacade;
     private final WSFacade wsFacade;
+    private String color = null;
 
     public PostLoginUI(String authToken, ServerFacade serverFacade, WSFacade wsFacade) {
         this.authToken = authToken;
@@ -61,6 +62,10 @@ public class PostLoginUI extends ReplUI {
         return connectedGameID;
     }
 
+    public String getColor() {
+        return color;
+    }
+
     private boolean createGame(String input) {
         try {
             String gameName = input.split(WHITE_SPACE)[1];
@@ -88,14 +93,14 @@ public class PostLoginUI extends ReplUI {
         try {
             String[] splitted = input.split(WHITE_SPACE);
             int uiGameID = Integer.parseInt(splitted[1]);
-            String color = splitted[2];
-            if (!color.equalsIgnoreCase("WHITE") && !color.equalsIgnoreCase("BLACK")) {
+            color = splitted[2].toLowerCase();
+            if (!color.equals("white") && !color.equals("BLACK")) {
                 output = "unable to join game. Make sure you format your color as 'WHITE' or 'BLACK'\n";
                 return false;
             }
             connectedGameID = gameIDTracker.get(uiGameID);
             serverFacade.joinGame(authToken, color.toUpperCase(), connectedGameID);
-            wsFacade.connect(authToken, connectedGameID, color.toUpperCase());
+            wsFacade.connect(authToken, connectedGameID, color);
             output = "game joined and ready to play\n";
             return true;
         } catch (DataAccessException e) {
@@ -112,7 +117,8 @@ public class PostLoginUI extends ReplUI {
         try {
             int uiGameID = Integer.parseInt(input.split(WHITE_SPACE)[1]);
             connectedGameID = gameIDTracker.get(uiGameID);
-            output = "observed"; //gamePlayUI.drawBoard(getSpecificBoard(uiGameID, serverFacade), ChessGame.TeamColor.WHITE);
+            output = "game is now being observed\n";
+            wsFacade.connect(authToken, connectedGameID, null);
             return true;
         } catch (Exception e) {
             output = "unable to observe game. Make sure your game ID is correct.\n";
