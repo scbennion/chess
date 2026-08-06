@@ -71,7 +71,8 @@ public class GameplayUI extends ReplUI {
         try {
             String[] splitted = input.split(WHITE_SPACE);
             if (!checkPosFormatting(splitted[1]) || !checkPosFormatting(splitted[2])) {
-                output = "make sure your positions are formatted <letter><number> (ex: a1)\n";
+                output = "make sure your positions are formatted <letter><number> (ex: a1)\n" +
+                        "If your move includes promotion, include the piece name at the end as a separate word\n";
                 return false;
             }
             ChessPiece p = game.getBoard().getPiece(convertUIPos(splitted[1]));
@@ -80,11 +81,19 @@ public class GameplayUI extends ReplUI {
                 return false;
             }
             System.out.println("Chess Piece: " + p); //for debugging
-            ChessMove move = new ChessMove(convertUIPos(splitted[1]), convertUIPos(splitted[2]), p.getPieceType());
-            wsFacade.makeMove(authToken, gameID, move);
+
+            ChessPiece.PieceType promotionType = null;
+            if (splitted.length == 4) {
+                promotionType = ChessPiece.PieceType.valueOf(splitted[3].toUpperCase());
+            }
+            ChessMove move = new ChessMove(convertUIPos(splitted[1]), convertUIPos(splitted[2]), promotionType);
+            wsFacade.makeMove(authToken, gameID, move, color);
             output = "move sent to server\n";
             return true;
 
+        } catch (IllegalArgumentException e) {
+            output = "make sure your promotion type is a valid chess piece type (ex: queen)\n";
+            return false;
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -95,7 +104,7 @@ public class GameplayUI extends ReplUI {
     }
 
     private ChessPosition convertUIPos(String uiPos) {
-        return new ChessPosition(CHESS_ALPHABET.indexOf(uiPos.charAt(0)) + 1, Integer.parseInt(uiPos.substring(1)));
+        return new ChessPosition(Integer.parseInt(uiPos.substring(1)), CHESS_ALPHABET.indexOf(uiPos.charAt(0)) + 1);
     }
 
     private void help() {

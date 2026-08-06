@@ -47,10 +47,11 @@ public class WSFacade extends Endpoint {
         }
     }
 
-    public void makeMove(String authToken, int gameID, ChessMove move) {
+    public void makeMove(String authToken, int gameID, ChessMove move, String color) {
         try {
-            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.CONNECT, authToken, gameID);
+            UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.MAKE_MOVE, authToken, gameID);
             command.setMove(move);
+            command.setColor(color);
             send(new Gson().toJson(command));
         } catch (IOException e) {
             throw new RuntimeException(e.getMessage());
