@@ -19,9 +19,9 @@ public class Service {
         gameDAO = new SQLGameDAO();
     }
 
-    public Service(GameDAO gameDAO) {
-        userDAO = new SQLUserDAO();
-        authDAO = new SQLAuthDAO();
+    public Service(GameDAO gameDAO, AuthDAO authDAO, UserDAO userDAO) {
+        this.userDAO = userDAO;
+        this.authDAO = authDAO;
         this.gameDAO = gameDAO;
     }
 

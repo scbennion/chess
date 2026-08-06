@@ -1,7 +1,6 @@
 package server;
 
-import dataaccess.GameDAO;
-import dataaccess.SQLGameDAO;
+import dataaccess.*;
 import io.javalin.*;
 import io.javalin.http.Context;
 
@@ -11,9 +10,11 @@ public class Server {
 
     public Server() {
         GameDAO gameDAO = new SQLGameDAO();
+        UserDAO userDAO = new SQLUserDAO();
+        AuthDAO authDAO = new SQLAuthDAO();
 
-        ChessHandler handler = new ChessHandler(gameDAO);
-        WebSocketHandler webSocketHandler = new WebSocketHandler(gameDAO);
+        ChessHandler handler = new ChessHandler(gameDAO, authDAO, userDAO);
+        WebSocketHandler webSocketHandler = new WebSocketHandler(gameDAO, authDAO, userDAO);
 
         javalin = Javalin.create(config -> config.staticFiles.add("web"))
                 .post("/user", handler::processRegister)

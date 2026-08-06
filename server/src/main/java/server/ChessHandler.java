@@ -1,7 +1,9 @@
 package server;
 
 import com.google.gson.Gson;
+import dataaccess.AuthDAO;
 import dataaccess.GameDAO;
+import dataaccess.UserDAO;
 import dataaccess.exceptions.*;
 import io.javalin.http.Context;
 import model.*;
@@ -13,8 +15,8 @@ import java.util.Map;
 public class ChessHandler {
     private final Service service;
 
-    public ChessHandler(GameDAO gameDAO) {
-        service = new Service(gameDAO);
+    public ChessHandler(GameDAO gameDAO, AuthDAO authDAO, UserDAO userDAO) {
+        service = new Service(gameDAO, authDAO, userDAO);
     }
 
     public void processRegister(Context ctx) throws DataAccessException {
