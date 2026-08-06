@@ -56,6 +56,7 @@ public class ClientMain implements ServerMessageObserver {
         switch (serverMessage.getServerMessageType()) {
             case LOAD_GAME -> {
                 game = serverMessage.getGame();
+                game.getBoard().buildPieceCaches();
                 assert (ui instanceof GameplayUI);
                 GameplayUI gameplayUI = (GameplayUI) ui;
                 gameplayUI.setGame(game);

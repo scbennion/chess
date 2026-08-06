@@ -94,7 +94,7 @@ public class PostLoginUI extends ReplUI {
             String[] splitted = input.split(WHITE_SPACE);
             int uiGameID = Integer.parseInt(splitted[1]);
             color = splitted[2].toLowerCase();
-            if (!color.equals("white") && !color.equals("BLACK")) {
+            if (!color.equals("white") && !color.equals("black")) {
                 output = "unable to join game. Make sure you format your color as 'WHITE' or 'BLACK'\n";
                 return false;
             }
