@@ -106,9 +106,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void makeMove(Session session, String username, UserGameCommand command) {
-        if (isPlayer(command, session)) {
-            GameData gameData = getGameData(command.getGameID(), session);
-            if (gameData != null) {
+        GameData gameData = getGameData(command.getGameID(), session);
+        if (gameData != null) {
+            if (isPlayer(gameData, username, session)) {
                 try {
                     ChessGame game = gameData.game();
                     game.makeMove(command.getMove());
@@ -130,9 +130,9 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void resign(Session session, String username, UserGameCommand command) {
-        if (isPlayer(command, session)) {
-            GameData gameData = getGameData(command.getGameID(), session);
-            if (gameData != null) {
+        GameData gameData = getGameData(command.getGameID(), session);
+        if (gameData != null) {
+            if (isPlayer(gameData, username, session)) {
                 gameData.game().resign();
                 String broadcastMessage = username + " has resigned";
                 broadcastNotification(broadcastMessage, command.getGameID(), session);
@@ -168,13 +168,13 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
-    private boolean isPlayer(UserGameCommand command, Session session) {
-        if (command.getColor() == null) {
-            String msg = "Error: Observer cannot interact with the game";
-            notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
-            return false;
+    private boolean isPlayer(GameData gameData, String username, Session session) {
+        if (gameData.whiteUsername().equals(username) || gameData.blackUsername().equals(username)) {
+            return true;
         }
-        return true;
+        String msg = "Error: Observer cannot interact with the game";
+        notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
+        return false;
     }
 
     private GameData getGameData(int gameID, Session session) {
@@ -188,7 +188,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private String convertToUI(ChessPosition pos) {
-        return CHESS_ALPHABET.charAt(pos.getColumn()) + String.valueOf(pos.getRow());
+        return CHESS_ALPHABET.charAt(pos.getColumn() - 1) + String.valueOf(pos.getRow());
     }
 
     private void leaveGame(Session session, String username, UserGameCommand command) {
