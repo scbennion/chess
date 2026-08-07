@@ -82,12 +82,16 @@ public class GameplayUI extends ReplUI {
     }
 
     private void resign() {
-        try {
-            wsFacade.resign(authToken, gameID, color, confirmResign);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+        if (!confirmResign) {
+            output = "Are you sure? Type 'resign' to confirm, type anything else to cancel.\n";
+            confirmResign = true;
+        } else {
+            try {
+                wsFacade.resign(authToken, gameID, color);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
         }
-        output = "";
     }
 
 

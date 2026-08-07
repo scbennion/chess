@@ -177,19 +177,14 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         if (gameData != null) {
             if (!gameData.game().isGameOver()) {
                 if (isPlayer(gameData, username, session)) {
-                    if (command.getConfirmResign()) {
-                        gameData.game().resign();
-                        String broadcastMessage = username + " has resigned";
-                        broadcastNotification(broadcastMessage, command.getGameID(), null);
-                        try {
-                            gameDAO.updateGameData(gameData);
-                        } catch (DataAccessException e) {
-                            String msg = "Error: Unable to save updated game to database";
-                            notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
-                        }
-                    } else {
-                        String message = "Are you sure? Type 'resign' again to confirm, or anything else to cancel.";
-                        notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, message));
+                    gameData.game().resign();
+                    String broadcastMessage = username + " has resigned";
+                    broadcastNotification(broadcastMessage, command.getGameID(), null);
+                    try {
+                        gameDAO.updateGameData(gameData);
+                    } catch (DataAccessException e) {
+                        String msg = "Error: Unable to save updated game to database";
+                        notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
                     }
                 }
             } else {
@@ -221,7 +216,8 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private boolean isPlayer(GameData gameData, String username, Session session) {
-        if (gameData.whiteUsername().equals(username) || gameData.blackUsername().equals(username)) {
+        if ((gameData.whiteUsername() != null && gameData.whiteUsername().equals(username))
+                || (gameData.blackUsername() != null && gameData.blackUsername().equals(username))) {
             return true;
         }
         String msg = "Error: Observer cannot interact with the game";
