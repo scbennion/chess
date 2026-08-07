@@ -3,6 +3,9 @@ package ui;
 import chess.*;
 import client.WSFacade;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import static ui.EscapeSequences.*;
 
 public class GameplayUI extends ReplUI {
@@ -42,7 +45,11 @@ public class GameplayUI extends ReplUI {
         } else if (input.toLowerCase().startsWith("make_move")) {
             return makeMove(input) ? "move made" : "failed";
         } else if (input.toLowerCase().startsWith("highlight")) {
-            return "highlighted";
+            highlightLegalMoves(input);
+            return highlightLegalMoves(input) ? "highlighted" : "failed";
+        } else if (input.equalsIgnoreCase("resign")) {
+            output = "resigned\n";
+            return "resigned";
         } else {
             help();
             return "helped";
@@ -51,7 +58,7 @@ public class GameplayUI extends ReplUI {
 
     public String redraw() {
         if (color == null) {
-            output = drawBoard(game.getBoard(), null);
+            output = drawBoard(game.getBoard(), ChessGame.TeamColor.WHITE);
         } else {
             output = drawBoard(game.getBoard(), ChessGame.TeamColor.valueOf(color.toUpperCase()));
         }
@@ -69,18 +76,10 @@ public class GameplayUI extends ReplUI {
 
     private boolean makeMove(String input) {
         try {
-            String[] splitted = input.split(WHITE_SPACE);
-            if (!checkPosFormatting(splitted[1]) || !checkPosFormatting(splitted[2])) {
-                output = "make sure your positions are formatted <letter><number> (ex: a1)\n" +
-                        "If your move includes promotion, include the piece name at the end as a separate word\n";
+            String[] splitted = getStrings(input, 2);
+            if (splitted == null) {
                 return false;
             }
-            ChessPiece p = game.getBoard().getPiece(convertUIPos(splitted[1]));
-            if (p == null) {
-                output = "no piece at specified game position\n";
-                return false;
-            }
-            System.out.println("Chess Piece: " + p); //for debugging
 
             ChessPiece.PieceType promotionType = null;
             if (splitted.length == 4) {
@@ -97,6 +96,43 @@ public class GameplayUI extends ReplUI {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private String[] getStrings(String input, int numberOfPositions) {
+        String[] splitted = input.split(WHITE_SPACE);
+        for (int i = 0; i < numberOfPositions; i++) {
+            if (!checkPosFormatting(splitted[i + 1])) {
+                output = """
+                        make sure your positions are formatted <letter><number> (ex: a1)
+                        If your move includes promotion, include the piece name at the end as a separate word
+                        """;
+                return null;
+            }
+        }
+        ChessPiece p = game.getBoard().getPiece(convertUIPos(splitted[1]));
+        if (p == null) {
+            output = "no piece at specified game position\n";
+            return null;
+        }
+        return splitted;
+    }
+
+    public boolean highlightLegalMoves(String input) {
+        String[] splitted = getStrings(input, 1);
+        if (splitted == null) {
+            return false;
+        }
+        var validMoves = game.validMoves(convertUIPos(splitted[1]));
+        ArrayList<ChessPosition> validPositions = new ArrayList<>();
+        for (ChessMove move : validMoves) {
+            validPositions.add(move.getEndPosition());
+        }
+        if (color == null) {
+            output = drawBoardAndHighlights(game.getBoard(), ChessGame.TeamColor.WHITE, validPositions);
+        } else {
+            output = drawBoardAndHighlights(game.getBoard(), ChessGame.TeamColor.valueOf(color), validPositions);
+        }
+        return true;
     }
 
     private boolean checkPosFormatting(String uiPos) {
@@ -118,6 +154,10 @@ public class GameplayUI extends ReplUI {
     }
 
     private String drawBoard(ChessBoard board, ChessGame.TeamColor orientation) {
+        return drawBoardAndHighlights(board, orientation, null);
+    }
+
+    private String drawBoardAndHighlights(ChessBoard board, ChessGame.TeamColor orientation, ArrayList<ChessPosition> highlights) {
         StringBuilder output = new StringBuilder();
         var whitePieceMap = board.getSidePieces(ChessGame.TeamColor.WHITE);
         var blackPieceMap = board.getSidePieces(ChessGame.TeamColor.BLACK);
@@ -140,7 +180,7 @@ public class GameplayUI extends ReplUI {
                     piece = blackPieceMap.get(pos);
                     color = ChessGame.TeamColor.BLACK;
                 }
-                output.append(drawSquare(row, col, piece, color));
+                output.append(drawSquare(row, col, piece, color, highlights));
             }
             output.append(rowIndicator).append("\n");
         }
@@ -149,12 +189,16 @@ public class GameplayUI extends ReplUI {
         return output.toString();
     }
 
-    private String drawSquare(int row, int col, ChessPiece piece, ChessGame.TeamColor color) {
-        String squareColor = SET_BG_COLOR_WHITE;
-        if ((col + row) % 2 == 0) {
-            squareColor = SET_BG_COLOR_BLACK;
+    private String drawSquare(int row, int col, ChessPiece piece, ChessGame.TeamColor color, ArrayList<ChessPosition> highlights) {
+        String squareColor = null;
+        if (highlights != null && highlights.contains(new ChessPosition(row, col))) {
+            squareColor = SET_BG_COLOR_YELLOW;
+        } else {
+            squareColor = SET_BG_COLOR_WHITE;
+            if ((col + row) % 2 == 0) {
+                squareColor = SET_BG_COLOR_BLACK;
+            }
         }
-
         String pieceLetter = " ";
         String pieceColor = "";
         switch (color) {
