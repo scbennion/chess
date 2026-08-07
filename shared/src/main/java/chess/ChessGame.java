@@ -208,7 +208,7 @@ public class ChessGame {
         return false;
     }
 
-    private TeamColor oppositeColor(TeamColor c) {
+    public TeamColor oppositeColor(TeamColor c) {
         return switch (c) {
             case WHITE -> TeamColor.BLACK;
             case BLACK -> TeamColor.WHITE;
