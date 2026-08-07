@@ -12,11 +12,7 @@ public abstract class ReplUI {
     public String print() {
         return output;
     }
-
-    public void addStringToOutput(String str) {
-        output = output + str;
-    }
-
+    
     public String getAuthToken() {
         return authToken;
     }
