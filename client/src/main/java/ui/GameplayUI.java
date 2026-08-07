@@ -88,6 +88,7 @@ public class GameplayUI extends ReplUI {
         } else {
             try {
                 wsFacade.resign(authToken, gameID, color);
+                output = "";
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
