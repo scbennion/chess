@@ -67,6 +67,16 @@ public class WSFacade extends Endpoint {
         }
     }
 
+    public void resign(String authToken, int gameID, String color) {
+        UserGameCommand command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
+        command.setColor(color);
+        try {
+            send(new Gson().toJson(command));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private void handleMessage(String messageString) {
         try {
             ServerMessage message = serializer.fromJson(messageString, ServerMessage.class);

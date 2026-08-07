@@ -4,7 +4,6 @@ import chess.*;
 import client.WSFacade;
 
 import java.util.ArrayList;
-import java.util.Collection;
 
 import static ui.EscapeSequences.*;
 
@@ -48,7 +47,7 @@ public class GameplayUI extends ReplUI {
             highlightLegalMoves(input);
             return highlightLegalMoves(input) ? "highlighted" : "failed";
         } else if (input.equalsIgnoreCase("resign")) {
-            output = "resigned\n";
+            resign();
             return "resigned";
         } else {
             help();
@@ -73,6 +72,16 @@ public class GameplayUI extends ReplUI {
         }
         output = "you have left the game\n";
     }
+
+    private void resign() {
+        try {
+            wsFacade.resign(authToken, gameID, color);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        output = "resigned\n";
+    }
+
 
     private boolean makeMove(String input) {
         try {
@@ -150,6 +159,7 @@ public class GameplayUI extends ReplUI {
                 LEAVE\t%1$sleave game%2$s
                 MAKE_MOVE <POSITION> <POSITION>\t%1$sredraw board%2$s
                 HIGHLIGHT <POSITION>\t%1$shighlights legal moves for a piece%2$s
+                RESIGN\t%forfeit the game%2$s
                 """, SET_TEXT_ITALIC, RESET_TEXT_ITALIC);
     }
 

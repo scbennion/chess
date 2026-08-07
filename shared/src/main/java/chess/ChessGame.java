@@ -13,7 +13,7 @@ public class ChessGame {
     private TeamColor turn;
     private final HashSet<ChessMove> previousEnPassantOpportunities;
     private final HashSet<ChessMove> enPassantOpportunities;
-
+    boolean gameOver = false;
 
     public ChessGame() {
         board = new ChessBoard();
@@ -123,32 +123,41 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        ChessPosition startPos = move.getStartPosition();
-        ChessPiece piece = board.getPiece(startPos);
-        if (piece == null || piece.getTeamColor() != turn) {
-            throw new InvalidMoveException();
-        }
-        if (move.getSpecialMove() == null) {
-            move.trySetSpecialMoveField(board);
-        }
+        if (!gameOver) {
+            ChessPosition startPos = move.getStartPosition();
+            ChessPiece piece = board.getPiece(startPos);
+            if (piece == null || piece.getTeamColor() != turn) {
+                throw new InvalidMoveException();
+            }
+            if (move.getSpecialMove() == null) {
+                move.trySetSpecialMoveField(board);
+            }
 
-        //to update en-passant stuff. SUPER SCUFFED
-        for (int row = 1; row <= 8; row++) {
-            for (int col = 1; col <= 8; col++) {
-                validMoves(new ChessPosition(row, col));
+            //to update en-passant stuff. SUPER SCUFFED
+            for (int row = 1; row <= 8; row++) {
+                for (int col = 1; col <= 8; col++) {
+                    validMoves(new ChessPosition(row, col));
+                }
+            }
+
+            Collection<ChessMove> moves = validMoves(startPos);
+            if (moves.contains(move)) {
+                board.movePiece(move);
+                tryMoveSecondPiece(move);
+                turn = oppositeColor(turn);
+                previousEnPassantOpportunities.addAll(enPassantOpportunities);
+                enPassantOpportunities.clear();
+            } else {
+                throw new InvalidMoveException();
+            }
+            if (isInCheckmate(turn) || isInStalemate(turn)) {
+                gameOver = true;
             }
         }
+    }
 
-        Collection<ChessMove> moves = validMoves(startPos);
-        if (moves.contains(move)) {
-            board.movePiece(move);
-            tryMoveSecondPiece(move);
-            turn = oppositeColor(turn);
-            previousEnPassantOpportunities.addAll(enPassantOpportunities);
-            enPassantOpportunities.clear();
-        } else {
-            throw new InvalidMoveException();
-        }
+    public void resign() {
+        gameOver = true;
     }
 
 

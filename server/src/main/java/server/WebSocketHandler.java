@@ -129,6 +129,25 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         }
     }
 
+    private void resign(Session session, String username, UserGameCommand command) {
+        if (isPlayer(command, session)) {
+            GameData gameData = getGameData(command.getGameID(), session);
+            if (gameData != null) {
+                gameData.game().resign();
+                String broadcastMessage = username + " has resigned";
+                broadcastNotification(broadcastMessage, command.getGameID(), session);
+                broadcastLoadGame(gameData.game(), command.getGameID(), session);
+                try {
+                    gameDAO.updateGameData(gameData);
+                } catch (DataAccessException e) {
+                    String msg = "Error: Unable to save updated game to database";
+                    notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
+                }
+            }
+        }
+    }
+
+
     private void broadcastNotification(String msg, int gameID, Session session) {
         try {
             String serializedBroadcastMessage = serializer.toJson(new ServerMessage(ServerMessage.ServerMessageType.NOTIFICATION, msg));
@@ -175,10 +194,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     private void leaveGame(Session session, String username, UserGameCommand command) {
         connectionManager.remove(command.getGameID(), session);
         broadcastNotification(username + " has left the game", command.getGameID(), session);
-    }
-
-    private void resign(Session session, String username, UserGameCommand command) {
-        System.out.println("Resigned");
     }
 
     private String getUsername(String authToken) throws DataAccessException {
