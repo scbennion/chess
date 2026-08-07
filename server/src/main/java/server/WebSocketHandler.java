@@ -236,6 +236,17 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
 
     private void leaveGame(Session session, String username, UserGameCommand command) {
         connectionManager.remove(command.getGameID(), session);
+        GameData gameData = null;
+        try {
+            gameData = gameDAO.getGame(command.getGameID());
+            if (gameData.whiteUsername() != null && gameData.whiteUsername().equals(username)) {
+                gameDAO.updateGameData(new GameData(gameData.gameID(), null, gameData.blackUsername(), gameData.gameName(), gameData.game()));
+            } else if (gameData.blackUsername() != null && gameData.blackUsername().equals(username)) {
+                gameDAO.updateGameData(new GameData(gameData.gameID(), gameData.whiteUsername(), null, gameData.gameName(), gameData.game()));
+            }
+        } catch (DataAccessException e) {
+
+        }
         broadcastNotification(username + " has left the game", command.getGameID(), session);
     }
 
