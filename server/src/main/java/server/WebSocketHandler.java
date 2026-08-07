@@ -34,7 +34,6 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     AuthDAO authDAO;
     UserDAO userDAO;
     static final String CHESS_ALPHABET = "abcdefgh";
-    boolean gameOver = false;
 
     public WebSocketHandler(GameDAO gameDAO, AuthDAO authDAO, UserDAO userDAO) {
         this.gameDAO = gameDAO;
@@ -107,12 +106,21 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
     }
 
     private void makeMove(Session session, String username, UserGameCommand command) {
-        if (!gameOver) {
-            GameData gameData = getGameData(command.getGameID(), session);
-            if (gameData != null) {
+        GameData gameData = getGameData(command.getGameID(), session);
+        if (gameData != null) {
+            if (!gameData.game().isGameOver()) {
                 if (isPlayer(gameData, username, session)) {
                     try {
                         ChessGame game = gameData.game();
+                        ChessGame.TeamColor color = ChessGame.TeamColor.BLACK;
+                        if (gameData.whiteUsername().equals(username)) {
+                            color = ChessGame.TeamColor.WHITE;
+                        }
+                        if (!color.equals(gameData.game().getTeamTurn())) {
+                            String msg = "Error: Not your turn";
+                            notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
+                            return;
+                        }
                         game.makeMove(command.getMove());
                         notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.LOAD_GAME, game));
                         String broadcastMessage = username + " has moved " + convertToUI(command.getMove().getStartPosition())
@@ -120,7 +128,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                         broadcastNotification(broadcastMessage, command.getGameID(), session);
                         broadcastLoadGame(game, command.getGameID(), session);
                         gameDAO.updateGameData(gameData);
-                        checkSpecialConditions(username, session, command, game, gameData);
+                        checkSpecialConditions(username, color, command, game, gameData);
                     } catch (InvalidMoveException e) {
                         String msg = "Error: Invalid Move";
                         notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
@@ -129,19 +137,15 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                         notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
                     }
                 }
+            } else {
+                String msg = "Error: Game Over";
+                notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
             }
-        } else {
-            String msg = "Error: Game Over";
-            notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
         }
     }
 
-    private void checkSpecialConditions(String username, Session session, UserGameCommand command, ChessGame game, GameData gameData) {
+    private void checkSpecialConditions(String username, ChessGame.TeamColor color, UserGameCommand command, ChessGame game, GameData gameData) {
         String broadcastMessage;
-        ChessGame.TeamColor color = ChessGame.TeamColor.BLACK;
-        if (gameData.whiteUsername().equals(username)) {
-            color = ChessGame.TeamColor.WHITE;
-        }
         if (game.isInCheckmate(game.oppositeColor(color))) {
             if (color == ChessGame.TeamColor.BLACK) {
                 broadcastMessage = gameData.whiteUsername() + " is checkmated.";
@@ -149,7 +153,7 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
                 broadcastMessage = gameData.blackUsername() + " is checkmated.";
             }
             broadcastNotification(broadcastMessage, command.getGameID(), null);
-            gameOver = true;
+            game.setGameOver(true);
         } else if (game.isInCheck(game.oppositeColor(color))) {
             if (color == ChessGame.TeamColor.BLACK) {
                 broadcastMessage = gameData.whiteUsername() + " is in check.";
@@ -160,24 +164,28 @@ public class WebSocketHandler implements WsConnectHandler, WsMessageHandler, WsC
         } else if (game.isInStalemate(game.oppositeColor(color))) {
             broadcastMessage = "stalemate";
             broadcastNotification(broadcastMessage, command.getGameID(), null);
-            gameOver = true;
+            game.setGameOver(true);
         }
     }
 
     private void resign(Session session, String username, UserGameCommand command) {
         GameData gameData = getGameData(command.getGameID(), session);
         if (gameData != null) {
-            if (isPlayer(gameData, username, session)) {
-                gameData.game().resign();
-                String broadcastMessage = username + " has resigned";
-                broadcastNotification(broadcastMessage, command.getGameID(), null);
-                broadcastLoadGame(gameData.game(), command.getGameID(), null);
-                try {
-                    gameDAO.updateGameData(gameData);
-                } catch (DataAccessException e) {
-                    String msg = "Error: Unable to save updated game to database";
-                    notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
+            if (!gameData.game().isGameOver()) {
+                if (isPlayer(gameData, username, session)) {
+                    gameData.game().resign();
+                    String broadcastMessage = username + " has resigned";
+                    broadcastNotification(broadcastMessage, command.getGameID(), null);
+                    try {
+                        gameDAO.updateGameData(gameData);
+                    } catch (DataAccessException e) {
+                        String msg = "Error: Unable to save updated game to database";
+                        notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
+                    }
                 }
+            } else {
+                String msg = "Error: Game Over";
+                notifySession(session, new ServerMessage(ServerMessage.ServerMessageType.ERROR, msg));
             }
         }
     }
