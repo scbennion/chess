@@ -23,7 +23,6 @@ public class ClientMain implements ServerMessageObserver {
 
     public static void main(String[] args) throws Exception {
         new ClientMain(TEST_PORT);
-
         System.out.print(SET_TEXT_COLOR_WHITE);
         ui = new PreLoginUI(serverFacade);
         System.out.println("♕ Welcome to 240 Chess Client. Type HELP to get started ♕\n");
@@ -65,8 +64,12 @@ public class ClientMain implements ServerMessageObserver {
             }
             case ERROR -> System.out.print(SET_TEXT_COLOR_RED + serverMessage.getError() + SET_TEXT_COLOR_WHITE
                     + "\n" + ui.prompt());
-            case NOTIFICATION ->
-                    System.out.print(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + SET_TEXT_COLOR_WHITE + "\n" + ui.prompt());
+            case NOTIFICATION -> {
+                if (serverMessage.getMessage().equals("Are you sure? Type 'resign' again to confirm, or anything else to cancel.")) {
+                    ((GameplayUI) ui).setConfirmResign(true);
+                }
+                System.out.print(SET_TEXT_COLOR_LIGHT_GREY + serverMessage.getMessage() + SET_TEXT_COLOR_WHITE + "\n" + ui.prompt());
+            }
         }
     }
 }

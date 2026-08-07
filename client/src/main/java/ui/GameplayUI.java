@@ -15,6 +15,7 @@ public class GameplayUI extends ReplUI {
     private ChessGame game;
     static final String CHESS_ALPHABET = "abcdefgh";
     static final String CHESS_NUMBERS = "12345678";
+    private boolean confirmResign = false;
 
     public GameplayUI(String authToken, int gameID, String color, WSFacade wsFacade) {
         this.authToken = authToken;
@@ -27,6 +28,10 @@ public class GameplayUI extends ReplUI {
         this.game = game;
     }
 
+    public void setConfirmResign(boolean confirmResign) {
+        this.confirmResign = confirmResign;
+    }
+
     @Override
     public String prompt() {
         return "[GAME] >>> ";
@@ -35,6 +40,9 @@ public class GameplayUI extends ReplUI {
     @Override
     public String eval(String input) {
         input = input.strip();
+        if (confirmResign && !input.equalsIgnoreCase("resign")) {
+            confirmResign = false;
+        }
         if (input.equalsIgnoreCase("redraw")) {
             redraw();
             return "game redrawn";
@@ -75,11 +83,11 @@ public class GameplayUI extends ReplUI {
 
     private void resign() {
         try {
-            wsFacade.resign(authToken, gameID, color);
+            wsFacade.resign(authToken, gameID, color, confirmResign);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        output = "resigned\n";
+        output = "";
     }
 
 
@@ -139,7 +147,7 @@ public class GameplayUI extends ReplUI {
         if (color == null) {
             output = drawBoardAndHighlights(game.getBoard(), ChessGame.TeamColor.WHITE, validPositions);
         } else {
-            output = drawBoardAndHighlights(game.getBoard(), ChessGame.TeamColor.valueOf(color), validPositions);
+            output = drawBoardAndHighlights(game.getBoard(), ChessGame.TeamColor.valueOf(color.toUpperCase()), validPositions);
         }
         return true;
     }
@@ -159,7 +167,7 @@ public class GameplayUI extends ReplUI {
                 LEAVE\t%1$sleave game%2$s
                 MAKE_MOVE <POSITION> <POSITION>\t%1$sredraw board%2$s
                 HIGHLIGHT <POSITION>\t%1$shighlights legal moves for a piece%2$s
-                RESIGN\t%forfeit the game%2$s
+                RESIGN\t%1$sforfeit the game%2$s
                 """, SET_TEXT_ITALIC, RESET_TEXT_ITALIC);
     }
 

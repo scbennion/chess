@@ -17,6 +17,7 @@ public class UserGameCommand {
     private final Integer gameID;
     private String color = null;
     private ChessMove move = null;
+    private boolean confirmResign = false;
 
     public UserGameCommand(CommandType commandType, String authToken, Integer gameID) {
         this.commandType = commandType;
@@ -30,6 +31,14 @@ public class UserGameCommand {
 
     public String getColor() {
         return color;
+    }
+
+    public boolean getConfirmResign() {
+        return confirmResign;
+    }
+
+    public void setConfirmResign(boolean confirmResign) {
+        this.confirmResign = confirmResign;
     }
 
     public void setMove(ChessMove move) {
